@@ -257,3 +257,12 @@ Recap
         API annotation and automatic documentation
         And you only have to declare them once.
         That's probably the main visible advantage of FastAPI compared to alternative frameworks (apart from the raw performance).
+
+Query Parameters:
+    When you declare other function parameters that are not part of the path parameters, they are automatically interpreted as "query" parameters.
+    All the same process that applied for path parameters also applies for query parameters.
+    As query parameters are not a fixed part of a path, they can be optional and can have default values.
+    You can declare multiple path parameters and query parameters at the same time, FastAPI knows which is which. And you don't have to declare them in any specific order. They will be detected by name.
+    When you declare a default value for non-path parameters (for now, we have only seen query parameters), then it is not required.cIf you don't want to add a specific value but just make it optional, set the default as None. But when you want to make a query parameter required, you can just not declare any default value.
+    And of course, you can define some parameters as required, some as having a default value, and some entirely optional.
+    
