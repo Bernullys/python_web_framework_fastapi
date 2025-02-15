@@ -1,6 +1,7 @@
 from typing import Union
 from fastapi import FastAPI
 from enum import Enum
+from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -102,3 +103,41 @@ def multiple_p_q(user_id: int, item_id: int, last_name: str, name: str = "Bernar
     if nick_name:
         users.update({"nick name": nick_name})
     return users
+
+
+#---------------------------------------- Request Body ----------------------------------------------------------------------------------------#
+
+# Create a class inherited from BaseModel after importing it from pydantic
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+
+@app.post("/items/")
+def create_item(item: Item):
+    return item
+
+# We can use the model inside our function:
+@app.post("/item/")
+def using_created_item(item: Item):
+    item_dict = item.model_dump() # converts the class item to a dictionary
+    if item.description is not None:
+        item_dict.update({"item description": item.description})
+    if item.tax is not None:
+        total_price = item.price + item.tax
+        item_dict.update({"Item Total Price": total_price})
+    return item_dict
+
+# Request Body + path parameters:
+@app.post("/item/{item_id}")
+def body_plus_path(item_id: int, item: Item):
+    return {"Item id": item_id, **item.model_dump()}
+
+# Request body + path parameters + query parameters:
+@app.post("item/{item_id}")
+def body_puls_path_query(item_id: int, item: Item, q: str | None = None):
+    result = {"Item id": item_id, **item.model_dump()}
+    if q:
+        result.update({"Query parameter": q})
+    return result

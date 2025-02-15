@@ -265,4 +265,51 @@ Query Parameters:
     You can declare multiple path parameters and query parameters at the same time, FastAPI knows which is which. And you don't have to declare them in any specific order. They will be detected by name.
     When you declare a default value for non-path parameters (for now, we have only seen query parameters), then it is not required.cIf you don't want to add a specific value but just make it optional, set the default as None. But when you want to make a query parameter required, you can just not declare any default value.
     And of course, you can define some parameters as required, some as having a default value, and some entirely optional.
-    
+
+Request Body:
+    When you need to send data from a client (let's say, a browser) to your API, you send it as a request body.
+    A request body is data sent by the client to your API. A response body is the data your API sends to the client.
+    Your API almost always has to send a response body. But clients don't necessarily need to send request bodies all the time, sometimes they only request a path, maybe with some query parameters, but don't send a body.
+    To declare a request body, you use Pydantic models with all their power and benefits.
+    Info:
+    To send data, you should use one of: POST (the more common), PUT, DELETE or PATCH.
+    Sending a body with a GET request has an undefined behavior in the specifications, nevertheless, it is supported by FastAPI, only for very complex/extreme use cases.
+    As it is discouraged, the interactive docs with Swagger UI won't show the documentation for the body when using GET, and proxies in the middle might not support it.
+
+    Import Pydantic's BaseModel
+        First, you need to import BaseModel from pydantic.
+        Create your data model. Then you declare your data model as a class that inherits from BaseModel. Use standard Python types for all the attributes.
+        The same as when declaring query parameters, when a model attribute has a default value, it is not required. Otherwise, it is required. Use None to make it just optional.
+        To add it to your path operation, declare it the same way you declared path and query parameters... and declare its type as the model you created.
+        Results:
+            With just that Python type declaration, FastAPI will:
+            Read the body of the request as JSON.
+            Convert the corresponding types (if needed).
+            Validate the data.
+            If the data is invalid, it will return a nice and clear error, indicating exactly where and what was the incorrect data.
+            Give you the received data in the parameter item.
+            As you declared it in the function to be of type Item, you will also have all the editor support (completion, etc) for all of the attributes and their types.
+            Generate JSON Schema definitions for your model, you can also use them anywhere else you like if it makes sense for your project.
+            Those schemas will be part of the generated OpenAPI schema, and used by the automatic documentation UIs.
+    Request body + path parameters
+        You can declare path parameters and request body at the same time.
+        FastAPI will recognize that the function parameters that match path parameters should be taken from the path, and that function parameters that are declared to be Pydantic models should be taken from the request body.
+    Request body + path + query parameters
+        You can also declare body, path and query parameters, all at the same time.
+        FastAPI will recognize each of them and take the data from the correct place.
+        The function parameters will be recognized as follows:
+            If the parameter is also declared in the path, it will be used as a path parameter.
+            If the parameter is of a singular type (like int, float, str, bool, etc) it will be interpreted as a query parameter.
+            If the parameter is declared to be of the type of a Pydantic model, it will be interpreted as a request body.
+
+    FastAPI will know that the value of q is not required because of the default value = None.
+    The str | None (Python 3.10+) or Union in Union[str, None] (Python 3.8+) is not used by FastAPI to determine that the value is not required, it will know it's not required because it has a default value of = None.
+    But adding the type annotations will allow your editor to give you better support and detect errors.
+
+    Without Pydantic¶
+    If you don't want to use Pydantic models, you can also use Body parameters. See the docs for Body - Multiple Parameters: Singular values in body: 
+        Singular values in body¶
+            The same way there is a Query and Path to define extra data for query and path parameters, FastAPI provides an equivalent Body.
+            For example, extending the previous model, you could decide that you want to have another key importance in the same body, besides the item and user.
+            If you declare it as is, because it is a singular value, FastAPI will assume that it is a query parameter.
+            But you can instruct FastAPI to treat it as another body key using Body:
