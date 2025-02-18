@@ -1,7 +1,8 @@
-from typing import Union
-from fastapi import FastAPI
+from typing import Union, Annotated
+from fastapi import FastAPI, Query
 from enum import Enum
 from pydantic import BaseModel
+
 
 
 app = FastAPI()
@@ -141,3 +142,16 @@ def body_puls_path_query(item_id: int, item: Item, q: str | None = None):
     if q:
         result.update({"Query parameter": q})
     return result
+
+
+#--------------------------------- Query Parameters ans String Validations -------------------------------------------------#
+
+# Additional validation: even though a query parameter is optional, whenever it is provided, its length doesn't exceed 50 characters:
+@app.get("/item/")
+def additional_validation(q: Annotated[str | None, Query(max_length=50)] = None):
+# older version was: def additional_validation(q: str | None = Query(default=None, max_length=50)):
+    results = {"items": [{"items id": "Foo"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"items id": q})
+    return results
+

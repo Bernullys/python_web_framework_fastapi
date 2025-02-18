@@ -306,10 +306,32 @@ Request Body:
     The str | None (Python 3.10+) or Union in Union[str, None] (Python 3.8+) is not used by FastAPI to determine that the value is not required, it will know it's not required because it has a default value of = None.
     But adding the type annotations will allow your editor to give you better support and detect errors.
 
-    Without Pydantic¶
+    Without Pydantic
     If you don't want to use Pydantic models, you can also use Body parameters. See the docs for Body - Multiple Parameters: Singular values in body: 
-        Singular values in body¶
+        Singular values in body
             The same way there is a Query and Path to define extra data for query and path parameters, FastAPI provides an equivalent Body.
             For example, extending the previous model, you could decide that you want to have another key importance in the same body, besides the item and user.
             If you declare it as is, because it is a singular value, FastAPI will assume that it is a query parameter.
             But you can instruct FastAPI to treat it as another body key using Body:
+
+
+Query parameters and String Validations:
+    FastAPI allows you to declare additional information and validation for your parameters.
+    Additional validation:
+        To achieve that, first import:
+            Query from fastapi
+            Annotated from typing
+        What we will do is wrap that with Annotated, so it becomes: q: str | None = None
+        q is a parameter that can be a str or None, and by default, it is None.
+        Now that we have this Annotated where we can put more information (in this case some additional validation), add Query inside of Annotated, and set the parameter max_length.
+        Here we are using Query() because this is a query parameter. Later we will see others like Path(), Body(), Header(), and Cookie(), that also accept the same arguments as Query().
+    FastAPI will now:
+        Validate the data making sure the max length.
+        Show a clear error for the client when the data is not valid.
+        Document the parameter in the OpenAPI schema path operation (so it will show up in the automatic docs UI).
+    Advantages of Annotated:
+        Using Annotated is recommended instead of the default value in function parameters, it is better for multiple reasons.
+        The default value of the function parameter is the actual default value, that's more intuitive with Python in general.
+        You could call that same function in other places without FastAPI, and it would work as expected. If there's a required parameter (without a default value), your editor will let you know with an error, Python will also complain if you run it without passing the required parameter.
+        When you don't use Annotated and instead use the (old) default value style, if you call that function without FastAPI in other places, you have to remember to pass the arguments to the function for it to work correctly, otherwise the values will be different from what you expect (e.g. QueryInfo or something similar instead of str). And your editor won't complain, and Python won't complain running that function, only when the operations inside error out.
+        Because Annotated can have more than one metadata annotation, you could now even use the same function with other tools, like Typer.
