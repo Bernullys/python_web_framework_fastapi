@@ -144,7 +144,7 @@ def body_puls_path_query(item_id: int, item: Item, q: str | None = None):
     return result
 
 
-#--------------------------------- Query Parameters ans String Validations -------------------------------------------------#
+#--------------------------------- Query Parameters and String Validations -------------------------------------------------#
 
 # Additional validation: even though a query parameter is optional, whenever it is provided, its length doesn't exceed 50 characters:
 @app.get("/item/")
@@ -155,3 +155,115 @@ def additional_validation(q: Annotated[str | None, Query(max_length=50)] = None)
         results.update({"items id": q})
     return results
 
+# Add more validations:
+@app.get("/item/")
+def more_validations(q: Annotated[str | None, Query(max_length=50, min_length = 3)] =  None):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# We can add a regular expression  validation: Apart: we can find some old version using regex instead of pattern.
+@app.get("/item/")
+def more_validations(q: Annotated[str | None, Query(max_length=50, min_length=3, pattern="^fixedquery$")] =  None):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# We can of course use a default value different to None:
+@app.get("/item/")
+def other_than_none(q: Annotated[str | None, Query(max_length=50, min_length=3, pattern="^fixedquery")] = "fixedquery"):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# We can make a required value using Query only by no defining a default value:
+@app.get("/item/")
+def required_parameter(q: Annotated[str, Query(max_length=50, min_length=3, pattern="^fixedquery")]):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# We can required a value even if is None:
+@app.get("/item/")
+def required_parameter(q: Annotated[str | None, Query(max_length=50, min_length=3, pattern="^fixedquery")]):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# We can accept a list of parameters:
+items = ["food", "bar"]
+@app.get("/item/")
+def required_parameter(q: Annotated[list[str] | None, Query()] = None):
+    query_items = {"query": q}
+    return query_items
+# Then, with a URL like: http://localhost:8000/items/?q=foo&q=bar
+
+# We can accept a list of parameters with also default values:
+@app.get("/item/")
+def required_parameter(q: Annotated[list[str] | None, Query()] = ["food", "bar"]):
+    query_items = {"query": q}
+    return query_items
+# Then, with a URL like: http://localhost:8000/items/ will return the default values.
+
+# We can also use list without declaring its type.
+@app.get("/item/")
+def required_parameter(q: Annotated[list | None, Query()] = []):
+    query_items = {"query": q}
+    return query_items
+
+# We can declare more metadata: (adding title)
+@app.get("/item/")
+def more_metadat(q: Annotated[str | None, Query(title="Query Title", max_length=50)]= None):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# Another example: (adding description)
+@app.get("/item/")
+def more_metadat(q: Annotated[str | None, 
+                              Query(title="Query Title",
+                                    description="This is a description",
+                                     max_length=50)
+                            ]= None):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# Alias parameter:
+@app.get("/item/")
+def alias_parameter(q: Annotated[str | None, Query(alias="item-query")] = None):
+    results = {"items": [{"item id": "Foo"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# Deprecating parameters:
+@app.get("/item/")
+def more_metadat(q: Annotated[str | None, 
+                              Query(title="Query Title",
+                                    description="This is a description",
+                                     max_length=50,
+                                     pattern="^fixedquery$",
+                                     deprecated=True
+                                     )
+                            ]= None):
+    results = {"items": [{"item id": "Food"}, {"item id": "Bar"}]}
+    if q:
+        results.update({"item id": q})
+    return results
+
+# Exclude parameters from OpenAPI (from documentation):
+@app.get("/item/")
+def alias_parameter(hiddien_query: Annotated[str | None, Query(include_in_schema=False)] = None):
+    if hiddien_query:
+        return {"hidden query": hiddien_query}
+    else:
+        return {"hidden query": "Not found"}
+    

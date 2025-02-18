@@ -335,3 +335,36 @@ Query parameters and String Validations:
         You could call that same function in other places without FastAPI, and it would work as expected. If there's a required parameter (without a default value), your editor will let you know with an error, Python will also complain if you run it without passing the required parameter.
         When you don't use Annotated and instead use the (old) default value style, if you call that function without FastAPI in other places, you have to remember to pass the arguments to the function for it to work correctly, otherwise the values will be different from what you expect (e.g. QueryInfo or something similar instead of str). And your editor won't complain, and Python won't complain running that function, only when the operations inside error out.
         Because Annotated can have more than one metadata annotation, you could now even use the same function with other tools, like Typer.
+    We can use more than one validation and also we can validate a regular expression.
+    We can use a default value different than None. Having a default value of any type, including None, makes the parameter optional (not required).
+    When you need to declare a value as required while using Query, you can simply not declare a default value.
+    We can set None as a required type. We can declare that a parameter can accept None, but that it's still required. This would force clients to send a value, even if the value is None. To do that, we can declare that None is a valid type but simply do not declare a default value.
+    When you define a query parameter explicitly with Query you can also declare it to receive a list of values, or said in another way, to receive multiple values. To declare a query parameter with a type of list, you need to explicitly use Query, otherwise it would be interpreted as a request body.
+    We can also use list without declaring its type. Keep in mind that in this case, FastAPI won't check the contents of the list.
+    For example, list[int] would check (and document) that the contents of the list are integers. But list alone wouldn't.
+    Declare more metadata:
+        You can add more information about the parameter.
+        That information will be included in the generated OpenAPI and used by the documentation user interfaces and external tools. Keep in mind that different tools might have different levels of OpenAPI support. Some of them might not show all the extra information declared yet, although in most of the cases, the missing feature is already planned for development.
+    Alias parameters:
+        Imagine that you want the parameter to be item-query.
+        Like in: http://127.0.0.1:8000/items/?item-query=foobaritems
+        But item-query is not a valid Python variable name. The closest would be item_query. But you still need it to be exactly item-query...
+        Then you can declare an alias, and that alias is what will be used to find the parameter value.
+    Deprecating parameters:
+        Now let's say you don't like this parameter anymore.
+        You have to leave it there a while because there are clients using it, but you want the docs to clearly show it as deprecated.
+        Then pass the parameter deprecated=True to Query.
+    Exclude parameters from OpenAPI:
+        To exclude a query parameter from the generated OpenAPI schema (and thus, from the automatic documentation systems), set the parameter include_in_schema of Query to False.
+    Recap:
+        You can declare additional validations and metadata for your parameters.
+        Generic validations and metadata:
+            alias
+            title
+            description
+            deprecated
+        Validations specific for strings:
+            min_length
+            max_length
+            pattern
+        In these examples you saw how to declare validations for str values.
