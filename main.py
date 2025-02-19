@@ -1,5 +1,5 @@
 from typing import Union, Annotated
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Path
 from enum import Enum
 from pydantic import BaseModel
 
@@ -106,7 +106,7 @@ def multiple_p_q(user_id: int, item_id: int, last_name: str, name: str = "Bernar
     return users
 
 
-#---------------------------------------- Request Body ----------------------------------------------------------------------------------------#
+#---------------------------------------- Request Body --------------------------------------------------------------------------#
 
 # Create a class inherited from BaseModel after importing it from pydantic
 class Item(BaseModel):
@@ -266,4 +266,71 @@ def alias_parameter(hiddien_query: Annotated[str | None, Query(include_in_schema
         return {"hidden query": hiddien_query}
     else:
         return {"hidden query": "Not found"}
-    
+
+
+#----------------------------- Path Parameters and Numeric Validations ----------------------------------------------#
+# Adding validation and metadata to a path parameter using Path: 
+@app.get("/items/{item_id}")
+def path_parameter_adding_metadata(
+    item_id: Annotated[int , Path(title="The Id of the item to get")],
+    q: Annotated[str | None, Query(alias="item-query")] = None,
+):
+    results = {"item id": item_id}
+    if q:
+        results.update({"q is": q})
+    return results
+
+# Order without using Annotated (better use it):
+@app.get("/items/{item_id}")
+async def required_query_and_metadata_path(q: str, item_id: int = Path(title="The ID of the item to get")):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    return results
+
+# Order using Anotated:
+@app.get("/items/{item_id}")
+async def required_query_and_metadata_path(q: str, item_id: Annotated[int, Path(title="The ID of the item to get")]):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    return results
+
+# Order as you needed trick (without Annotated):
+@app.get("/items/{item_id}")
+async def required_query_and_metadata_path(*, item_id: int = Path(title="The ID of the item to get"), q):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    return results
+
+# Better with Annotated:
+@app.get("/items/{item_id}")
+async def required_query_and_metadata_path(item_id: Annotated[int, Path(title="The ID of the item to get")], q):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    return results
+
+# Number Validations (ge is greater or equal than, le is less or equal than)
+@app.get("/items/{item_id}")
+async def number_validation(item_id: Annotated[int, Path(title="The ID of the item to get", ge=1, le=1000)], q):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    return results
+
+# Number Validations also work with float type but we have to use gt and lt:
+@app.get("/items/{item_id}")
+def float_validation(
+    *,
+    item_id: Annotated[int, Path(title="The ID of the item to get", ge=0, le=1000)],
+    q: str,
+    size: Annotated[float, Query(gt=0, lt=10.5)]
+    ):
+        results = {"item_id": item_id}
+        if q:
+            results.update({"q": q})
+        if size:
+            results.update({"size": size})
+        return results
