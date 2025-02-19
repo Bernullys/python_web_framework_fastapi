@@ -1,7 +1,7 @@
-from typing import Union, Annotated
+from typing import Union, Annotated, Literal
 from fastapi import FastAPI, Query, Path
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 
@@ -334,3 +334,28 @@ def float_validation(
         if size:
             results.update({"size": size})
         return results
+
+#-------------------------------- Query Parameter with Pydantic Model ------------------------------------------#
+
+# Declare the query parameters in a Pydantic model, and declare the parameter as Query:
+class FilterParams(BaseModel):
+    limit: int = Field(100, gt=0, le=100)
+    offset: int = Field(0, ge=0)
+    order_by: Literal["created_at", "update_at"]
+    tags: list[str] = []
+
+@app.get("/items/")
+def query_with_base_model(filter_query: Annotated[FilterParams, Query]):
+    return filter_query
+
+# Forbid Extra Query Parameters (using Pydantic's model configuration to forbid any extra fields)
+class FilterParamsForbid(BaseModel):
+    model_config = {"extra": "forbid"}
+    limit: int = Field(100, gt=0, le=100)
+    offset: int = Field(0, ge=0)
+    order_by: Literal["created_at", "update_at"]
+    tags: list[str] = []
+
+@app.get("/items/")
+def query_with_base_model(filter_query: Annotated[FilterParamsForbid, Query]):
+    return filter_query

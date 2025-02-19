@@ -417,3 +417,16 @@ Path Parameters and Numeric Validations:
         So, you import Query, which is a function. And when you call it, it returns an instance of a class also named Query.
         These functions are there (instead of just using the classes directly) so that your editor doesn't mark errors about their types.
         That way you can use your normal editor and coding tools without having to add custom configurations to disregard those errors.
+
+
+Query Parameter Model:
+    If you have a group of query parameters that are related, you can create a Pydantic model to declare them.
+    This would allow you to re-use the model in multiple places and also to declare validations and metadata for all the parameters at once.
+    Declare the query parameters that you need in a Pydantic model, and then declare the parameter as Query.
+    FastAPI will extract the data for each field from the query parameters in the request and give you the Pydantic model you defined.
+    Forbid Extra Query Parameters:
+        In some special use cases (probably not very common), you might want to restrict the query parameters that you want to receive.
+        You can use Pydantic's model configuration to forbid any extra fields.
+        If a client tries to send some extra data in the query parameters, they will receive an error response.
+    Spoiler alert: you can also use Pydantic models to declare cookies and headers, but you will read about that later in the tutorial.
+
