@@ -454,3 +454,19 @@ Body - Multiple Parameters:
         But FastAPI will handle it, give you the correct data in your function, and validate and document the correct schema in the path operation.
         You can also declare singular values to be received as part of the body.
         And you can instruct FastAPI to embed the body in a key even when there is only a single parameter declared.
+
+
+
+Body - Fields:
+    The same way you can declare additional validation and metadata in path operation function parameters with Query, Path and Body, you can declare validation and metadata inside of Pydantic models using Pydantic's Field. Field works the same way as Query, Path and Body, it has all the same parameters, etc. This extra information will be included in the generated JSON schema.
+    We need to import Field from pydantic
+    Technical details:
+        Actually, Query, Path and others you'll see next create objects of subclasses of a common Param class, which is itself a subclass of Pydantic's FieldInfo class.
+        And Pydantic's Field returns an instance of FieldInfo as well.
+        Body also returns objects of a subclass of FieldInfo directly. And there are others you will see later that are subclasses of the Body class.
+        Remember that when you import Query, Path, and others from fastapi, those are actually functions that return special classes.
+        Notice how each model's attribute with a type, default value and Field has the same structure as a path operation function's parameter, with Field instead of Path, Query and Body.
+        Extra keys passed to Field will also be present in the resulting OpenAPI schema for your application. As these keys may not necessarily be part of the OpenAPI specification, some OpenAPI tools, for example the OpenAPI validator, may not work with your generated schema.
+    Recap:
+        You can use Pydantic's Field to declare extra validations and metadata for model attributes.
+        You can also use the extra keyword arguments to pass additional JSON Schema metadata.

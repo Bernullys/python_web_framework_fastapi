@@ -428,3 +428,17 @@ async def update_item(item_id: int, item: Annotated[Item, Body(embed=True)]):
     results = {"item_id": item_id, "item": item}
     return results
 
+
+#--------------------------------- Body - Fields ------------------------------------------#
+
+# Declare the fields in the Pydantic model with Field:
+class Item(BaseModel):
+    name: str
+    description: str | None = Field(None, title="The description of the item", max_length=300)
+    price: float = Field(gt=0, description="The price must be greater than zero")
+    tax: float | None = Field(None, description="The tax is optional")
+
+app.put("/items/{item_id}")
+async def update_item(item_id: int, item: Item):
+    results = {"item_id": item_id, "item": item}
+    return results
