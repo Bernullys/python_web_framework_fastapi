@@ -430,3 +430,27 @@ Query Parameter Model:
         If a client tries to send some extra data in the query parameters, they will receive an error response.
     Spoiler alert: you can also use Pydantic models to declare cookies and headers, but you will read about that later in the tutorial.
 
+
+Body - Multiple Parameters:
+    Now that we have seen how to use Path and Query, let's see more advanced uses of request body declarations.
+    Mix Path, Query and body parameters:
+        First, of course, you can mix Path, Query and request body parameter declarations freely and FastAPI will know what to do. And you can also declare body parameters as optional, by setting the default to None.
+    Multiple body parameters:
+        We can also declare multiple body parameters. Like to classes from Pydantic Model.
+        So, it will then use the parameter names as keys (field names) in the body.
+    Singular values in body:
+        The same way there is a Query and Path to define extra data for query and path parameters, FastAPI provides an equivalent Body. For example, you could decide that you want to have another key in the same body.
+        If you declare it as is, because it is a singular value, FastAPI will assume that it is a query parameter.
+        But you can instruct FastAPI to treat it as another body key using Body.
+    Multiple body params and query:
+        Of course, you can also declare additional query parameters whenever you need, additional to any body parameters. As, by default, singular values are interpreted as query parameters, you don't have to explicitly add a Query.
+    Embed a single body parameter:
+        Body also has all the same extra validation and metadata parameters as Query,Path and others you will see later.
+        Let's say you only have a single item body parameter from a Pydantic model Item.
+        By default, FastAPI will then expect its body directly.
+        But if you want it to expect a JSON with a key item and inside of it the model contents, as it does when you declare extra body parameters, you can use the special Body parameter embed: item: Item = Body(embed=True).
+    Recap:
+        You can add multiple body parameters to your path operation function, even though a request can only have a single body.
+        But FastAPI will handle it, give you the correct data in your function, and validate and document the correct schema in the path operation.
+        You can also declare singular values to be received as part of the body.
+        And you can instruct FastAPI to embed the body in a key even when there is only a single parameter declared.

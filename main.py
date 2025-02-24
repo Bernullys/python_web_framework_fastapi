@@ -1,5 +1,5 @@
 from typing import Union, Annotated, Literal
-from fastapi import FastAPI, Query, Path
+from fastapi import FastAPI, Query, Path, Body
 from enum import Enum
 from pydantic import BaseModel, Field
 
@@ -345,7 +345,7 @@ class FilterParams(BaseModel):
     tags: list[str] = []
 
 @app.get("/items/")
-def query_with_base_model(filter_query: Annotated[FilterParams, Query]):
+def query_with_base_model(filter_query: Annotated[FilterParams, Query()]):
     return filter_query
 
 # Forbid Extra Query Parameters (using Pydantic's model configuration to forbid any extra fields)
@@ -357,5 +357,74 @@ class FilterParamsForbid(BaseModel):
     tags: list[str] = []
 
 @app.get("/items/")
-def query_with_base_model(filter_query: Annotated[FilterParamsForbid, Query]):
+def query_with_base_model(filter_query: Annotated[FilterParamsForbid, Query()]):
     return filter_query
+
+
+#-------------------------------- Body Multiple Parameters ------------------------------------------#
+
+# Mix Path, Query and Body parameters with Body parameters optional, by setting the default to None:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id: Annotated[int, Path(title="The id of the item to update", ge=0, le=1000)],
+    q: str | None = None,
+    item: Item | None = None
+    ):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    if item:
+        results.update({"item": item})
+    return results
+
+# More than one Body parameter
+class User(BaseModel):
+    username: str
+    full_name: str | None = None
+
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id: int,
+    item: Item,
+    user: User
+    ):
+    results = {"item_id": item_id, "item": item, "user": user}
+    return results
+
+# Singular values in Body: Extending the previous example, we can use singular values in the body (we need to import Body from fastapi):
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id: int,
+    item: Item,
+    user: User,
+    importance: Annotated[int, Body()]
+    ):
+    results = {"item_id": item_id, "item": item, "user": user, "importance": importance}
+    return results
+
+# Multiple body params and query: we just need to add the query parameter to the function:
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id: int,
+    item: Item,
+    user: User,
+    importance: Annotated[int, Body()],
+    q: str | None = None
+    ):
+    results = {"item_id": item_id, "item": item, "user": user, "importance": importance}
+    if q:
+        results.update({"q": q})
+    return results
+
+# Embed a single body parameter: This way should be used when we want to use a single body parameter:
+@app.put("/items/{item_id}")
+async def update_item(item_id: int, item: Annotated[Item, Body(embed=True)]):
+    results = {"item_id": item_id, "item": item}
+    return results
+
