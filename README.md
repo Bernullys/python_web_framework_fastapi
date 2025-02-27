@@ -529,4 +529,47 @@ Body - Nested Models:
             Data validation.
             Schema documentation.
             Automatic docs.
+
+Declare Request Example Data:
+    You can declare examples of the data your app can receive. There are several ways to do it.
+    Extra JSON Schema data in Pydantic models:
+        That extra info will be added as-is to the output JSON Schema for that model, and it will be used in the API docs.
+        In Pydantic version 2, you would use the attribute model_config, that takes a dict as described in Pydantic's docs: Configuration.
+        You can set "json_schema_extra" with a dict containing any additional data you would like to show up in the generated JSON Schema, including examples.
+        You could use the same technique to extend the JSON Schema and add your own custom extra info. For example you could use it to add metadata for a frontend user interface, etc.
+        OpenAPI 3.1.0 (used since FastAPI 0.99.0) added support for examples, which is part of the JSON Schema standard.
+        Before that, it only supported the keyword example with a single example. That is still supported by OpenAPI 3.1.0, but is deprecated and is not part of the JSON Schema standard. So you are encouraged to migrate example to examples.
+    Field additional arguments:
+        When using Field() with Pydantic models, you can also declare additional examples.
+    examples in JSON Schema - OpenAPI:
+        When using any of:
+            Path()
+            Query()
+            Header()
+            Cookie()
+            Body()
+            Form()
+            File()
+        You can also declare a group of examples with additional information that will be added to their JSON Schemas inside of OpenAPI.
+    Body with examples:
+        Here we pass examples containing one example of the data expected in Body().
+    Body with multiple examples:
+        You can of course also pass multiple examples.
+        When you do this, the examples will be part of the internal JSON Schema for that body data.
+        Nevertheless, at the time of writing this, Swagger UI, the tool in charge of showing the docs UI, doesn't support showing multiple examples for the data in JSON Schema. But read below for a workaround.
+    Using the openapi_examples Parameter:
+        You can declare the OpenAPI-specific examples in FastAPI with the parameter openapi_examples for:
+            Path()
+            Query()
+            Header()
+            Cookie()
+            Body()
+            Form()
+            File()
+        The keys of the dict identify each example, and each value is another dict.
+        Each specific example dict in the examples can contain:
+            summary: Short description for the example.
+            description: A long description that can contain Markdown text.
+            value: This is the actual example shown, e.g. a dict.
+            externalValue: alternative to value, a URL pointing to the example. Although this might not be supported by as many tools as value.
     

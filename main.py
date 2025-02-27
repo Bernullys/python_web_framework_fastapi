@@ -550,3 +550,144 @@ async def create_multiple_images(images: list[Image]):
 @app.post("/index-weights/")
 async def create_index_weights(weights: dict[int, float]):
     return weights
+
+
+
+#--------------------------------- Declare Request Example Data ------------------------------------------#
+
+# Declare example for Pydantic models:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "name": "Foo",
+                "description": "A very nice Item",
+                "price": 35.4,
+                "tax": 3.2,
+            }
+        }
+    }
+
+@app.put("/example1/{example1_id}")
+async def example1(example1_id: int, item: Item):
+    results = {"example1_id": example1_id, "item": item}
+    return results
+
+# Field() additional arguments:
+class Item(BaseModel):
+    name: str = Field(examples = ["Bernardo"])
+    description: str | None = Field(examples = ["A very nice Item"])
+    price: float = Field(examples = [35.4])
+    tax: float | None = Field(examples = [3.2])
+
+@app.put("/examples_field/{item_id}")
+async def examples_field(item_id: int, item: Item):
+    results = {"item_id": item_id, "item": item}
+    return results
+
+# Body with one examples:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+
+@app.put("/examples_body/{item_id}")
+async def examples_body(item_id: int, item: Annotated[
+    Item,
+    Body(
+        examples=[
+            {
+                "name": "Food",
+                "description": "A very nice Item",
+                "price": 35.4,
+                "tax": 3.2
+            }
+        ]
+    )
+    ]):
+    results = {"item_id": item_id, "item": item}
+    return results
+
+# Body with multiple examples:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+
+@app.put("/multiple_examples_body/{item_id}")
+async def multiple_examples_body(item_id: int, item: Annotated[
+    Item,
+    Body(
+        examples=[
+            {
+                "name": "Food",
+                "description": "A very nice Item",
+                "price": 35.4,
+                "tax": 3.2
+            },
+            {
+                "name": "Bar",
+                "price": 3.5
+            },
+            {
+                "name": "Baz",
+                "price": 5.4,
+                "tax": 1.2
+            }
+        ]
+    )
+    ]):
+    results = {"item_id": item_id, "item": item}
+    return results
+
+# To show several examples in documentation:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+
+@app.put("/show_several_examples/{item_id}")
+async def show_several_examples(item_id: int, item: Annotated[
+    Item,
+    Body(
+        openapi_examples= {
+            "example1": {
+                "summary": "This is example 1",
+                "description": "This is a complete description",
+                "value": {
+                    "name": "Food",
+                    "description": "A very nice Item",
+                    "price": 35.4,
+                    "tax": 3.2
+                }
+            },
+            "example2": {
+                "summary": "This is example 2",
+                "description": "This is a complete description",
+                "value": {
+                    "name": "Bar",
+                    "price": 3.5
+                }
+            },
+            "example3": {
+                "summary": "This is example 3",
+                "description": "This is a complete description",
+                "value": {
+                    "name": "Baz",
+                    "price": 5.4,
+                    "tax": 1.2
+                }
+            },
+        }
+    )
+    ]):
+    results = {"item_id": item_id, "item": item}
+    return results
