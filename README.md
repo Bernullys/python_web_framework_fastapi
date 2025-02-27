@@ -1,6 +1,13 @@
 # python_web_framework_fastapi
 Youtube course from Bitfumes
 
+Installation:
+    pip install "fastapi[standard]"
+Run:
+    fastapi dev main.py
+Run with Uvicorn:
+    uvicorn file_name:app_name --reload
+
 FastAPI Intro:
     Automatic docs:
         Swagger UI
@@ -470,3 +477,56 @@ Body - Fields:
     Recap:
         You can use Pydantic's Field to declare extra validations and metadata for model attributes.
         You can also use the extra keyword arguments to pass additional JSON Schema metadata.
+
+Body - Nested Models:
+    With FastAPI, you can define, validate, document, and use arbitrarily deeply nested models (thanks to Pydantic).
+    List fields:
+        You can define an attribute to be a subtype.
+    List fields with type parameter:
+       Python has a specific way to declare lists with internal types, or "type parameters".
+       In Python 3.9 and above you can use the standard list to declare these type annotations.
+       But in Python versions before 3.9 (3.6 and above), you first need to import List from standard Python's typing module.
+       That's all standard Python syntax for type declarations. Use that same standard syntax for model attributes with internal types.
+    Set types:
+        But then we think about it, and realize that tags shouldn't repeat, they would probably be unique strings.
+        And Python has a special data type for sets of unique items, the set.
+        Then we can declare tags as a set of strings.
+        With this, even if you receive a request with duplicate data, it will be converted to a set of unique items.
+    Nested Models:
+        Each attribute of a Pydantic model has a type.
+        But that type can itself be another Pydantic model.
+        So, you can declare deeply nested JSON "objects" with specific attribute names, types and validations.
+        All that, arbitrarily nested.
+        Again, doing just that declaration, with FastAPI you get:
+            Editor support (completion, etc.), even for nested models.
+            Data conversion.
+            Data validation.
+            Automatic documentation.
+    Special types and validation:
+        Apart from normal singular types like str, int, float, etc. you can use more complex singular types that inherit from str.
+        To see all the options you have, checkout Pydantic's Type Overview.
+    Attributes with lists of submodels:
+        You can also use Pydantic models as subtypes of list, set, etc.
+    Deeply nested models:
+        You can define arbitrarily deeply nested models.
+    Bodies of pure lists:
+        If the top level value of the JSON body you expect is a JSON array (a Python list), you can declare the type in the parameter of the function, the same as in Pydantic models: images: list[Image]
+    You couldn't get this kind of editor support if you were working directly with dict instead of Pydantic models.
+    But you don't have to worry about them either, incoming dicts are converted automatically and your output is converted automatically to JSON too.
+    Bodies of arbitrary dicts:
+        You can also declare a body as a dict with keys of some type and values of some other type.
+        This way, you don't have to know beforehand what the valid field/attribute names are (as would be the case with Pydantic models).
+        This would be useful if you want to receive keys that you don't already know.
+        Another useful case is when you want to have keys of another type (e.g., int).
+        Keep in mind that JSON only supports str as keys.
+        But Pydantic has automatic data conversion.
+        This means that, even though your API clients can only send strings as keys, as long as those strings contain pure integers, Pydantic will convert them and validate them.
+        And the dict you receive as weights will actually have int keys and float values.
+    Recap:
+        With FastAPI you have the maximum flexibility provided by Pydantic models, while keeping your code simple, short and elegant.But with all the benefits:
+            Editor support (completion everywhere!).
+            Data conversion (a.k.a. parsing / serialization).
+            Data validation.
+            Schema documentation.
+            Automatic docs.
+    

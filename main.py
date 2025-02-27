@@ -1,7 +1,7 @@
 from typing import Union, Annotated, Literal
 from fastapi import FastAPI, Query, Path, Body
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 
 
@@ -442,3 +442,111 @@ app.put("/items/{item_id}")
 async def update_item(item_id: int, item: Item):
     results = {"item_id": item_id, "item": item}
     return results
+
+
+#--------------------------------- Body - Nested Models ------------------------------------------#
+
+# This will make tags be a list, although it doesn't declare the type of the elements of the list:
+class ItemBaseModel(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: list = []
+
+@app.put("/body_nested_models/{bnm_id}")
+async def body_nested_models(bnm_id:int, ibm: ItemBaseModel):
+    results = {"bnm id": bnm_id, "i b m": ibm}
+    return results
+
+# List fields with type parameter:
+class ItemBaseModel(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: list[str] = []
+    #we also can use set types:
+    delete_duplicates_tags: set[str] = set()
+
+@app.put("/body_nested_models_with_type_list/{bnm_id}")
+async def body_nested_models_with_type_list(bnm_id:int, ibm: ItemBaseModel):
+    results = {"bnm id": bnm_id, "i b m": ibm}
+    return results
+
+# Nested models:
+
+# This is a submodel:
+class Image(BaseModel):
+    url: str
+    # url: HttpUrl this is a special type. To use it we need to import HttpUrl from pydantic.
+    name: str
+
+class ItemsNestedModel(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: set[str] = set()
+    image: Image | None = None # here we are using a submodel as a type.
+
+@app.put("/body_nested_models_with_nested_model/{bnm_id}")
+async def body_nested_models_with_type_list(bnm_id:int, ibm: ItemsNestedModel):
+    results = {"bnm id": bnm_id, "i b m": ibm}
+    return results
+
+# Nested models, special types and attributes with list of submodels:
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
+
+class ItemsNestedModelListOfSubmodels(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: set[str] = set()
+    images: list[Image] | None = None
+
+@app.put("/body_nested_models_with_nested_model_and_lists/{bnm_id}")
+async def body_nested_models_with_type_list(bnm_id:int, ibm: ItemsNestedModelListOfSubmodels):
+    results = {"bnm id": bnm_id, "i b m": ibm}
+    return results
+
+# Deeply nested models:
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
+
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: set[str] = set()
+    images: list[Image] | None = None
+
+class Offer(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    items: list[Item]
+
+@app.post("/offers/")
+async def create_offer(offer: Offer):
+    return offer
+
+# Bodies of pure lists:
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
+
+@app.post("/images/multiple/")
+async def create_multiple_images(images: list[Image]):
+    return images
+
+# Bodies of arbitrary dicts:
+# In this case, you would accept any dict as long as it has int keys with float values.
+@app.post("/index-weights/")
+async def create_index_weights(weights: dict[int, float]):
+    return weights
