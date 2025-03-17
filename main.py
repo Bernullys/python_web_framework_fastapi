@@ -2,6 +2,8 @@ from typing import Union, Annotated, Literal
 from fastapi import FastAPI, Query, Path, Body
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl
+from uuid import UUID
+from datetime import datetime, time, timedelta
 
 
 
@@ -590,7 +592,7 @@ async def examples_field(item_id: int, item: Item):
     results = {"item_id": item_id, "item": item}
     return results
 
-# Body with one examples:
+# Body with one example:
 class Item(BaseModel):
     name: str
     description: str | None = None
@@ -691,3 +693,27 @@ async def show_several_examples(item_id: int, item: Annotated[
     ]):
     results = {"item_id": item_id, "item": item}
     return results
+
+
+#--------------------------------- Extra Data Types ------------------------------------------#
+
+# Example using some extra data types:
+@app.put("/items/{item_id}")
+async def extra_datatypes(
+    item_id: UUID,
+    start_datetime: Annotated[datetime, Body()],
+    end_datetime: Annotated[datetime, Body()],
+    process_after: Annotated[timedelta, Body()],
+    repeat_at: Annotated[time | None, Body()] = None
+):
+    start_process = start_datetime + process_after
+    duration = end_datetime - start_process
+    return {
+        "item id": item_id,
+        "start datetime": start_datetime,
+        "end datetime": end_datetime,
+        "process after": process_after,
+        "repear at": repeat_at,
+        "start process": start_process,
+        "duration": duration
+    }
