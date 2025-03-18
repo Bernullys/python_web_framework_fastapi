@@ -1,5 +1,5 @@
 from typing import Union, Annotated, Literal
-from fastapi import FastAPI, Query, Path, Body
+from fastapi import FastAPI, Query, Path, Body, Cookie
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl
 from uuid import UUID
@@ -717,3 +717,10 @@ async def extra_datatypes(
         "start process": start_process,
         "duration": duration
     }
+
+
+#--------------------------------- Cookie Parameters ------------------------------------------#
+# Cookie parameter:
+@app.get("/items/")
+async def cookie(ads_id: Annotated[str | None, Cookie()] = None):
+    return {"ads id": ads_id}

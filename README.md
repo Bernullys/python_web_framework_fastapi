@@ -616,3 +616,28 @@ Extra Data Types:
                 Standard Python Decimal.
                 In requests and responses, handled the same as a float.
             You can check all the valid Pydantic data types here: Pydantic data types.
+
+Cookie Parameters:
+    First: What is a Cokkie?
+            A cookie is a small piece of data stored on a user's browser by a website. It helps websites remember information about users, such as loging status, preferences, and tracking data.
+        Some types of Cookies:
+            Session Cookies: stored temporarily in the browser and deleted when the user closes the browser. Example: keeping a user logged while they navigate pages.
+            Persistent Cookies: stored for a longer period, even after closing the browser. Example: "remember me" login feature.
+            First-Party Cookies: created by the website the user is visiting. Example: language preferences on a website.
+            Third-Party Cookies: created by domains other than the one being visited (often used for traking and advertising). Example: Ads tracking user behaibor across different websites.
+        How Cookies work:
+            A user visits a website.
+            The website sends a cookie to the user's browser.
+            The browser stores the cookie.
+            On future visits, the browser sends the cookie back to the website.
+    Cookie Parameters:
+        You can define Cookie parameters the same way you define Query and Path parameters. First import Cookie.
+    Declare Cookie Parameters:
+        Then declare the cookie parameters using the same structure as with Path and Query.
+        You can define the default value as well as all the extra validation or annotation parameters.
+    Technical Details:
+        Cookie is a "sister" class of Path and Query. It also inherits from the same common Param class.
+        But remember that when you import Query, Path, Cookie and others from fastapi, those are actually functions that return special classes.
+        To declare cookies, you need to use Cookie, because otherwise the parameters would be interpreted as query parameters.
+    Recap:
+        Declare cookies with Cookie, using the same common pattern as Query and Path.
