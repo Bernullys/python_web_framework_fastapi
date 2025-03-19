@@ -759,3 +759,30 @@ class ForbidCookies(BaseModel):
 @app.get("/items/")
 async def cookie_model_forbid(cookies: Annotated[ForbidCookies, Cookies()]):
     return cookies
+
+
+#--------------------------------- Header Parameter Models ------------------------------------------#
+# Header with a Pydantic Model:
+class CommonHeaders(BaseModel):
+    host: str
+    save_data: bool
+    if_modified_since: str | None = None
+    traceparent: str | None = None
+    x_tag: list[str] = []
+
+@app.get("/items/")
+async def header_model(headers: Annotated[CommonHeaders, Header()]):
+    return headers
+
+# Forbid Extra Headers:
+class ForbidHeaders(BaseModel):
+    model_config = {"extra": "forbid"}
+    host: str
+    save_data: bool
+    if_modified_since: str | None = None
+    traceparent: str | None = None
+    x_tag: list[str] = []
+
+@app.get("/items/")
+async def header_model_forbid(headers: Annotated[ForbidHeaders, Header()]):
+    return headers
