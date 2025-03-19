@@ -684,3 +684,24 @@ Header Parameters:
     Recap:
         Declare headers with Header, using the same common pattern as Query, Path and Cookie.
         And don't worry about underscores in your variables, FastAPI will take care of converting them.
+
+Cookie Parameter Models:
+    If you have a group of cookies that are related, you can create a Pydantic model to declare them.
+    This would allow you to re-use the model in multiple places and also to declare validations and metadata for all the parameters at once.
+    This same technique applies to Query, Cookie, and Header.
+    Cookies with a Pydantic Model:
+        Declare the cookie parameters that you need in a Pydantic model, and then declare the parameter as Cookie.
+        FastAPI will extract the data for each field from the cookies received in the request and give you the Pydantic model you defined.
+    Info: 
+        Have in mind that, as browsers handle cookies in special ways and behind the scenes, they don't easily allow JavaScript to touch them.
+        If you go to the API docs UI at /docs you will be able to see the documentation for cookies for your path operations.
+        But even if you fill the data and click "Execute", because the docs UI works with JavaScript, the cookies won't be sent, and you will see an error message as if you didn't write any values.
+    Forbid Extra Cookies:
+        In some special use cases (probably not very common), you might want to restrict the cookies that you want to receive.
+        Your API now has the power to control its own cookie consent.
+        You can use Pydantic's model configuration to forbid any extra fields.
+        If a client tries to send some extra cookies, they will receive an error response.
+        Poor cookie banners with all their effort to get your consent for the API to reject it.
+        For example, if the client tries to send a santa_tracker cookie with a value of good-list-please, the client will receive an error response telling them that the santa_tracker cookie is not allowed.
+    Summary:
+        You can use Pydantic models to declare cookies in FastApi.

@@ -736,3 +736,26 @@ async def header(user_agent: Annotated[str | None, Header()] = None):
 @app.get("/items/")
 async def duplicate_headers(x_token: Annotated[list[str] | None, Header()] = None):
     return {"X-Token values": x_token}
+
+
+#--------------------------------- Cookie Parameter Models ------------------------------------------#
+# Cookies with a Pydantic Model:
+class Cookies(BaseModel):
+    session_id: str
+    fetebook_tracker: str | None = None
+    googall_tracker: str | None = None
+
+@app.get("/items/")
+async def cookie_model(cookies: Annotated[Cookies, Cookie()]):
+    return cookies
+
+# Forbid Extra Cookies:
+class ForbidCookies(BaseModel):
+    model_config = {"extra": "forbid"}
+    session_id: str
+    fetebook_tracker: str | None = None
+    googall_tracker: str | None = None
+
+@app.get("/items/")
+async def cookie_model_forbid(cookies: Annotated[ForbidCookies, Cookies()]):
+    return cookies
