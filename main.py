@@ -1,7 +1,7 @@
-from typing import Union, Annotated, Literal
+from typing import Union, Annotated, Literal, Any
 from fastapi import FastAPI, Query, Path, Body, Cookie, Header
 from enum import Enum
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, EmailStr
 from uuid import UUID
 from datetime import datetime, time, timedelta
 
@@ -786,3 +786,169 @@ class ForbidHeaders(BaseModel):
 @app.get("/items/")
 async def header_model_forbid(headers: Annotated[ForbidHeaders, Header()]):
     return headers
+
+
+#--------------------------------- Response Model - Return Type ------------------------------------------#
+# This is a return type annotation symbol: ->
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: list[str] = []
+
+@app.post("/items/")
+async def create_item_using_rta(item: Item) -> Item:
+    return item
+
+
+@app.get("/items/")
+async def read_items_usind_rta() -> list[Item]:
+    return [
+        Item(name="Portal Gun", price=42.0),
+        Item(name="Plumbus", price=32.0),
+    ]
+
+# This is a response_model parameter to ensure the data type but more flexible: (we have to import Any)
+@app.post("/items/", response_model=Item)
+async def create_item_using_rm(item: Item) -> Any:
+    return item
+
+
+@app.get("/items/", response_model=list[Item])
+async def read_items_using_rm() -> Any:
+    return [
+        {"name": "Portal Gun", "price": 42.0},
+        {"name": "Plumbus", "price": 32.0},
+    ]
+
+# Return the same input data:
+#Here we are declaring a UserIn model, it will contain a plaintext password:
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    full_name: str | None = None
+
+# Don't do this in production!
+@app.post("/user/")
+async def create_user_return_same_input_data(user: UserIn) -> UserIn:
+    return user
+
+#Add an output model: We can instead create an input model with the plaintext password and an output model without it:
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    full_name: str | None = None
+
+
+class UserOut(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str | None = None
+
+@app.post("/user/", response_model=UserOut)
+async def create_user_return_output_data(user: UserIn) -> Any:
+    return user
+
+#Return type and Data Filtering:
+class BaseUser(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str | None = None
+
+class UserIn(BaseUser):
+    password: str
+
+@app.post("/user/")
+async def create_user_data_filtering(user: UserIn) -> BaseUser:
+    return user
+
+# Other return type annotations:
+# Return a Response directly:
+from fastapi import FastAPI, Response
+from fastapi.responses import JSONResponse, RedirectResponse
+
+@app.get("/portal")
+async def get_portal(teleport: bool = False) -> Response:
+    if teleport:
+        return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    return JSONResponse(content={"message": "Here's your interdimensional portal."})
+
+# Annotate a Response Subclass:
+@app.get("/teleport")
+async def get_teleport() -> RedirectResponse:
+    return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+
+# Invalid return type annotation:
+@app.get("/portal")
+async def get_portal_invalid(teleport: bool = False) -> Response | dict:
+    if teleport:
+        return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    return {"message": "Here's your interdimensional portal."}
+
+# Disable response_model:
+@app.get("/portal", response_model=None)
+async def get_portal(teleport: bool = False) -> Response | dict:
+    if teleport:
+        return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    return {"message": "Here's your interdimensional portal."}
+
+# Response Model encoding parameters:
+# Your response model could have default values:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float = 10.5
+    tags: list[str] = []
+
+items = {
+    "foo": {"name": "Foo", "price": 50.2},
+    "bar": {"name": "Bar", "description": "The bartenders", "price": 62, "tax": 20.2},
+    "baz": {"name": "Baz", "description": None, "price": 50.2, "tax": 10.5, "tags": []},
+}
+
+@app.get("/items/{item_id}", response_model=Item, response_model_exclude_unset=True)
+async def read_item_avoiding_default_values(item_id: str):
+    return items[item_id]
+
+# response_model_include and response_model_exclude:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float = 10.5
+
+items = {
+    "foo": {"name": "Foo", "price": 50.2},
+    "bar": {"name": "Bar", "description": "The Bar fighters", "price": 62, "tax": 20.2},
+    "baz": {
+        "name": "Baz",
+        "description": "There goes my baz",
+        "price": 50.2,
+        "tax": 10.5,
+    },
+}
+
+# Note: The syntax {"name", "description"} creates a set with those two values.
+# It is equivalent to set(["name", "description"]).
+
+@app.get(
+    "/items/{item_id}/name",
+    response_model=Item,
+    response_model_include={"name", "description"},
+)
+async def read_item_name_model_include(item_id: str):
+    return items[item_id]
+
+@app.get("/items/{item_id}/public", response_model=Item, response_model_exclude={"tax"})
+async def read_item_public_data_model_exclude(item_id: str):
+    return items[item_id]
+
+# Using list's instead of set's:
+# Changes: 
+# response_model_include=["name", "description"]
+# and:
+# @app.get("/items/{item_id}/public", response_model=Item, response_model_exclude=["tax"])
