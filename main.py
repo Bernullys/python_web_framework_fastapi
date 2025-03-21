@@ -835,7 +835,7 @@ class UserIn(BaseModel):
 async def create_user_return_same_input_data(user: UserIn) -> UserIn:
     return user
 
-#Add an output model: We can instead create an input model with the plaintext password and an output model without it:
+# Add an output model: We can instead create an input model with the plaintext password and an output model without it:
 class UserIn(BaseModel):
     username: str
     password: str
@@ -952,3 +952,114 @@ async def read_item_public_data_model_exclude(item_id: str):
 # response_model_include=["name", "description"]
 # and:
 # @app.get("/items/{item_id}/public", response_model=Item, response_model_exclude=["tax"])
+
+
+#--------------------------------- Extra Models ------------------------------------------#
+# Here's a general idea of how the models could look like with their password fields and the places where they are used:
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    full_name: str | None = None
+
+class UserOut(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str | None = None
+
+class UserInDB(BaseModel):
+    username: str
+    hashed_password: str
+    email: EmailStr
+    full_name: str | None = None
+
+def fake_password_hasher(raw_password: str):
+    return "supersecret" + raw_password
+
+def fake_save_user(user_in: UserIn):
+    hashed_password = fake_password_hasher(user_in.password)
+    user_in_db = UserInDB(**user_in.dict(), hashed_password = hashed_password)
+    print("User saved! ..not really")
+    return user_in_db
+
+@app.post("/user/", response_model=UserOut)
+async def create_user_with_hp(user_in: UserIn):
+    user_saved = fake_save_user(user_in)
+    return user_saved
+
+# Reduce duplicarion using a BaseModel and subclasses:
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str | None = None
+
+class UserIn(UserBase):
+    password: str
+
+class UserOut(UserIn):
+    pass
+
+class UserInDB(UserIn):
+    hashed_password: str
+
+def fake_password_hasher(raw_password: str):
+    return "supersecret" + raw_password
+
+def fake_save_user(user_in: UserIn):
+    hashed_password = fake_password_hasher(user_in.password)
+    user_in_db = UserInDB(**user_in.dict(), hashed_password = hashed_password)
+    print("User saved! ..not really")
+    return user_in_db
+
+@app.post("/user/", response_model=UserOut)
+async def create_user_with_hp(user_in: UserIn):
+    user_saved = fake_save_user(user_in)
+    return user_saved
+
+# Union or anyOf example:
+class BaseItem(BaseModel):
+    description: str | None = None
+    type: str
+
+class CarItem(BaseItem):
+    type: str = "car"
+
+class PlaneItem(BaseItem):
+    type: str = "plane"
+    size: int
+
+items = {
+    "item1": {
+        "description": "All my friends drive a low rider",
+        "type": "car"
+    },
+    "item2": {
+        "description": "Music is my aeroplane, it's my aeroplane",
+        "type": "plane",
+        "size": 5,
+    },
+}
+
+@app.get("/items/{item_id}", response_model=Union[PlaneItem, CarItem])
+async def read_item_two_different_types(item_id: str):
+    return items[item_id]
+
+# List of models:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+
+items = [
+    {"name": "Foo", "description": "There comes my hero"},
+    {"name": "Red", "description": "It's my aeroplane"},
+]
+
+@app.get("/items/", response_model=list[Item])
+async def read_list_of_objects_items():
+    return items
+
+# Response with arbitrary dict:
+@app.get("/keyword-weights/", response_model=dict[str, float])
+async def read_keyword_weights_arbitrary_dict():
+    return {"foo": 2.3, "bar": 3.4}
+
