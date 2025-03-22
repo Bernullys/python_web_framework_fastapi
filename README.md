@@ -572,4 +572,32 @@ Declare Request Example Data:
             description: A long description that can contain Markdown text.
             value: This is the actual example shown, e.g. a dict.
             externalValue: alternative to value, a URL pointing to the example. Although this might not be supported by as many tools as value.
-    
+
+
+Extra Data Types:
+Cookie Parameters:
+Header Parameters:
+Cookie Parameter Models:
+Header Parameter Models:
+Response Model - Return Type:
+Extra Models:
+Response Status Code:
+Form Data:
+Form Models:
+Request Files:
+Request Forms and Files:
+Handling Errors:
+Path Operation Configuration:
+JSON Compatible Encoder:
+Bady - Updates:
+Dependencies:
+Security:
+Middleware:
+CORS (Cross-Origin Resource Sharing):
+SQL (Relational) Databases:
+Bigger Aplications - Multiple Files:
+Background Tasks:
+Metadata and Docs URLs:
+Static Files:
+Testing:
+Debugging:
