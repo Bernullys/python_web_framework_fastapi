@@ -573,6 +573,338 @@ Declare Request Example Data:
             value: This is the actual example shown, e.g. a dict.
             externalValue: alternative to value, a URL pointing to the example. Although this might not be supported by as many tools as value.
 
+Extra Data Types:
+    Up to now, you have been using common data types, like:
+        int
+        float
+        str
+        bool
+    But you can also use more complex data types. And you will still have the same features as seen up to now:
+        Great editor support.
+        Data conversion from incoming requests.
+        Data conversion for response data.
+        Data validation.
+        Automatic annotation and documentation.
+    Other data types:
+        Here are some of the additional data types you can use:
+            UUID:
+                A standard "Universally Unique Identifier", common as an ID in many databases and systems.
+                In requests and responses will be represented as a str.
+            datetime.datetime:
+                A Python datetime.datetime.
+                In requests and responses will be represented as a str in ISO 8601 format, like: 2008-09-15T15:53:00+05:00.
+            datetime.date:
+                Python datetime.date.
+                In requests and responses will be represented as a str in ISO 8601 format, like: 2008-09-15.
+            datetime.time:
+                A Python datetime.time.
+                In requests and responses will be represented as a str in ISO 8601 format, like: 14:23:55.003.
+            datetime.timedelta:
+                A Python datetime.timedelta.
+                In requests and responses will be represented as a float of total seconds.
+                Pydantic also allows representing it as a "ISO 8601 time diff encoding", see the docs for more info.
+            frozenset:
+                In requests and responses, treated the same as a set:
+                In requests, a list will be read, eliminating duplicates and converting it to a set.
+                In responses, the set will be converted to a list.
+                The generated schema will specify that the set values are unique (using JSON Schema's uniqueItems).
+            bytes:
+                Standard Python bytes.
+                In requests and responses will be treated as str.
+                The generated schema will specify that it's a str with binary "format".
+            Decimal:
+                Standard Python Decimal.
+                In requests and responses, handled the same as a float.
+            You can check all the valid Pydantic data types here: Pydantic data types.
+
+Cookie Parameters:
+    First: What is a Cokkie?
+            A cookie is a small piece of data stored on a user's browser by a website. It helps websites remember information about users, such as loging status, preferences, and tracking data.
+        Some types of Cookies:
+            Session Cookies: stored temporarily in the browser and deleted when the user closes the browser. Example: keeping a user logged while they navigate pages.
+            Persistent Cookies: stored for a longer period, even after closing the browser. Example: "remember me" login feature.
+            First-Party Cookies: created by the website the user is visiting. Example: language preferences on a website.
+            Third-Party Cookies: created by domains other than the one being visited (often used for traking and advertising). Example: Ads tracking user behaibor across different websites.
+        How Cookies work:
+            A user visits a website.
+            The website sends a cookie to the user's browser.
+            The browser stores the cookie.
+            On future visits, the browser sends the cookie back to the website.
+    Cookie Parameters:
+        You can define Cookie parameters the same way you define Query and Path parameters. First import Cookie.
+    Declare Cookie Parameters:
+        Then declare the cookie parameters using the same structure as with Path and Query.
+        You can define the default value as well as all the extra validation or annotation parameters.
+    Technical Details: (Valid for Header parameters too)
+        Cookie is a "sister" class of Path and Query. It also inherits from the same common Param class.
+        But remember that when you import Query, Path, Cookie and others from fastapi, those are actually functions that return special classes.
+        To declare cookies, you need to use Cookie, because otherwise the parameters would be interpreted as query parameters.
+    Recap:
+        Declare cookies with Cookie, using the same common pattern as Query and Path.
+
+Header Parameters:
+    First: What is a Header?
+        A Header is a metadata sent along with HTTP requests and responses. It provides important information about the request/response, such as content type, authentication, caching, and more.
+        Types of Headers:
+            Request Headers: sent from the client (browser/API) to the server. Example: Authorization, User-Agent, Content-Type.
+            Response Headers: sent from the server back to the client. Example: Set-Cookie, Content-Length, Cache-Control.
+        Common Headers & Their Purpose:
+            Authorization: Used for authentication (e.g., API tokens, Basic Auth).
+            Content-Type: Defines the type of data being sent (e.g., application/json).
+            User-Agent: Identifies the client making the request (browser, API, etc.).
+            Accept: Specifies the data formats the client can process (e.g., text/html).
+            Cache-Control: Controls caching behavior.
+            Set-Cookie: Used to send cookies from server to client.
+    You can define Header parameters the same way you define Query, Path and Cookie parameters. First import Header.
+    Declare Header parameters:
+        Then declare the header parameters using the same structure as with Path, Query and Cookie.
+        You can define the default value as well as all the extra validation or annotation parameters.
+    Automatic conversion:
+        Header has a little extra functionality on top of what Path, Query and Cookie provide.
+        Most of the standard headers are separated by a "hyphen" character, also known as the "minus symbol" (-).
+        But a variable like user-agent is invalid in Python.
+        So, by default, Header will convert the parameter names characters from underscore (_) to hyphen (-) to extract and document the headers.
+        Also, HTTP headers are case-insensitive, so, you can declare them with standard Python style (also known as "snake_case").
+        So, you can use user_agent as you normally would in Python code, instead of needing to capitalize the first letters as User_Agent or something similar.
+        If for some reason you need to disable automatic conversion of underscores to hyphens, set the parameter convert_underscores of Header to False. Warning: Before setting convert_underscores to False, bear in mind that some HTTP proxies and servers disallow the usage of headers with underscores.
+    Duplicate headers:
+        It is possible to receive duplicate headers. That means, the same header with multiple values.
+        You can define those cases using a list in the type declaration.
+        You will receive all the values from the duplicate header as a Python list.
+        If you communicate with that path operation sending two HTTP headers like:
+            X-Token: foo
+            X-Token: bar
+        The response would be like:
+            {
+                "X-Token values": [
+                    "bar",
+                    "foo"
+                ]
+            }
+    Recap:
+        Declare headers with Header, using the same common pattern as Query, Path and Cookie.
+        And don't worry about underscores in your variables, FastAPI will take care of converting them.
+
+Cookie Parameter Models:
+    If you have a group of cookies that are related, you can create a Pydantic model to declare them.
+    This would allow you to re-use the model in multiple places and also to declare validations and metadata for all the parameters at once.
+    This same technique applies to Query, Cookie, and Header.
+    Cookies with a Pydantic Model:
+        Declare the cookie parameters that you need in a Pydantic model, and then declare the parameter as Cookie. (Same for Header).
+        FastAPI will extract the data for each field from the cookies received in the request and give you the Pydantic model you defined. (Same for Header).
+    Info:
+        Have in mind that, as browsers handle cookies in special ways and behind the scenes, they don't easily allow JavaScript to touch them.
+        If you go to the API docs UI at /docs you will be able to see the documentation for cookies for your path operations.
+        But even if you fill the data and click "Execute", because the docs UI works with JavaScript, the cookies won't be sent, and you will see an error message as if you didn't write any values.
+    Forbid Extra Cookies: (Same for Header)
+        In some special use cases (probably not very common), you might want to restrict the cookies that you want to receive.
+        Your API now has the power to control its own cookie consent.
+        You can use Pydantic's model configuration to forbid any extra fields.
+        If a client tries to send some extra cookies, they will receive an error response.
+        Poor cookie banners with all their effort to get your consent for the API to reject it.
+        For example, if the client tries to send a santa_tracker cookie with a value of good-list-please, the client will receive an error response telling them that the santa_tracker cookie is not allowed.
+    Summary: (Same for Header)
+        You can use Pydantic models to declare cookies in FastApi.
+
+Response Model - Return Type
+    You can declare the type used for the response by annotating the path operation function return type.
+    You can use type annotations the same way you would for input data in function parameters, you can use Pydantic models, lists, dictionaries, scalar values like integers, booleans, etc.
+    FastAPI will use this return type to:
+        Validate the returned data.
+            If the data is invalid (e.g. you are missing a field), it means that your app code is broken, not returning what it should, and it will return a server error instead of returning incorrect data. This way you and your clients can be certain that they will receive the data and the data shape expected.
+        Add a JSON Schema for the response, in the OpenAPI path operation.
+            This will be used by the automatic docs.
+            It will also be used by automatic client code generation tools.
+        But most importantly:
+            It will limit and filter the output data to what is defined in the return type.
+            This is particularly important for security, we'll see more of that below.
+    response_model Parameter:
+        There are some cases where you need or want to return some data that is not exactly what the type declares.
+        For example, you could want to return a dictionary or a database object, but declare it as a Pydantic model. This way the Pydantic model would do all the data documentation, validation, etc. for the object that you returned (e.g. a dictionary or database object).
+        If you added the return type annotation, tools and editors would complain with a (correct) error telling you that your function is returning a type (e.g. a dict) that is different from what you declared (e.g. a Pydantic model).
+        In those cases, you can use the path operation decorator parameter response_model instead of the return type.
+        You can use the response_model parameter in any of the path operations:
+            @app.get()
+            @app.post()
+            @app.put()
+            @app.delete()
+            etc.
+        Notice that response_model is a parameter of the "decorator" method (get, post, etc). Not of your path operation function, like all the parameters and body.
+        response_model receives the same type you would declare for a Pydantic model field, so, it can be a Pydantic model, but it can also be, e.g. a list of Pydantic models, like List[Item].
+        FastAPI will use this response_model to do all the data documentation, validation, etc. and also to convert and filter the output data to its type declaration.
+        If you have strict type checks in your editor, mypy, etc, you can declare the function return type as Any.
+        That way you tell the editor that you are intentionally returning anything. But FastAPI will still do the data documentation, validation, filtering, etc. with the response_model.
+    response_model Priority:
+        If you declare both a return type and a response_model, the response_model will take priority and be used by FastAPI.
+        This way you can add correct type annotations to your functions even when you are returning a type different than the response model, to be used by the editor and tools like mypy. And still you can have FastAPI do the data validation, documentation, etc. using the response_model.
+        You can also use response_model=None to disable creating a response model for that path operation, you might need to do it if you are adding type annotations for things that are not valid Pydantic fields, you will see an example of that in one of the sections below.
+    Return the same input data:
+        Example in main: Now, whenever a browser is creating a user with a password, the API will return the same password in the response.
+        In this case, it might not be a problem, because it's the same user sending the password.
+        But if we use the same model for another path operation, we could be sending our user's passwords to every client.
+        Danger: Never store the plain password of a user or send it in a response like this, unless you know all the caveats and you know what you are doing.
+    Add an output model: (base on the example)
+        Here, even though our path operation function is returning the same input user that contains the password ...we declared the response_model to be our model UserOut, that doesn't include the password.
+        So, FastAPI will take care of filtering out all the data that is not declared in the output model (using Pydantic).
+    response_model or Return Type:
+        In this case, because the two models are different, if we annotated the function return type as UserOut, the editor and tools would complain that we are returning an invalid type, as those are different classes.
+        That's why in this example we have to declare it in the response_model parameter.
+        ...but continue reading below to see how to overcome that.
+    Return Type and Data Filtering:
+        Let's continue from the previous example. We wanted to annotate the function with one type, but we wanted to be able to return from the function something that actually includes more data.
+        We want FastAPI to keep filtering the data using the response model. So that even though the function returns more data, the response will only include the fields declared in the response model.
+        In the previous example, because the classes were different, we had to use the response_model parameter. But that also means that we don't get the support from the editor and tools checking the function return type.
+        But in most of the cases where we need to do something like this, we want the model just to filter/remove some of the data as in this example.
+        And in those cases, we can use classes and inheritance to take advantage of function type annotations to get better support in the editor and tools, and still get the FastAPI data filtering.
+        With this, we get tooling support, from editors and mypy as this code is correct in terms of types, but we also get the data filtering from FastAPI.
+        How does this work? Let's check that out:
+            Type Annotations and Tooling:
+                First let's see how editors, mypy and other tools would see this.
+                BaseUser has the base fields. Then UserIn inherits from BaseUser and adds the password field, so, it will include all the fields from both models.
+                We annotate the function return type as BaseUser, but we are actually returning a UserIn instance.
+                The editor, mypy, and other tools won't complain about this because, in typing terms, UserIn is a subclass of BaseUser, which means it's a valid type when what is expected is anything that is a BaseUser.
+            FastAPI Data Filtering:
+                Now, for FastAPI, it will see the return type and make sure that what you return includes only the fields that are declared in the type.
+                FastAPI does several things internally with Pydantic to make sure that those same rules of class inheritance are not used for the returned data filtering, otherwise you could end up returning much more data than what you expected.
+                This way, you can get the best of both worlds: type annotations with tooling support and data filtering.
+            See it in the docs:
+                When you see the automatic docs, you can check that the input model and output model will both have their own JSON Schema. And both models will be used for the interactive API documentation.
+    Other Return Type Annotation:
+        There might be cases where you return something that is not a valid Pydantic field and you annotate it in the function, only to get the support provided by tooling (the editor, mypy, etc).
+        Return a Response Directly:
+            The most common case would be returning a Response directly as explained later in the advanced docs.
+            This simple case is handled automatically by FastAPI because the return type annotation is the class (or a subclass of) Response.
+            And tools will also be happy because both RedirectResponse and JSONResponse are subclasses of Response, so the type annotation is correct.
+        Annotate a Response Subclass
+            You can also use a subclass of Response in the type annotation.
+            This will also work because RedirectResponse is a subclass of Response, and FastAPI will automatically handle this simple case.
+        Invalid Return Type Annotations:
+            But when you return some other arbitrary object that is not a valid Pydantic type (e.g. a database object) and you annotate it like that in the function, FastAPI will try to create a Pydantic response model from that type annotation, and will fail.
+            The same would happen if you had something like a union between different types where one or more of them are not valid Pydantic types.
+            @app.get("/portal")
+            async def get_portal(teleport: bool = False) -> Response | dict:
+                if teleport:
+                    return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                return {"message": "Here's your interdimensional portal."}
+            ...this fails because the type annotation is not a Pydantic type and is not just a single Response class or subclass, it's a union (any of the two) between a Response and a dict
+        Disable Response Model:
+            Continuing from the example above, you might not want to have the default data validation, documentation, filtering, etc. that is performed by FastAPI.
+            But you might want to still keep the return type annotation in the function to get the support from tools like editors and type checkers (e.g. mypy).
+            In this case, you can disable the response model generation by setting response_model=None.
+            This will make FastAPI skip the response model generation and that way you can have any return type annotations you need without it affecting your FastAPI application.
+    Response Model encoding parameters:
+        Your response model could have default values.
+        But you might want to omit them from the result if they were not actually stored.
+        For example, if you have models with many optional attributes in a NoSQL database, but you don't want to send very long JSON responses full of default values.
+        Use the response_model_exclude_unset parameter:
+            You can set the path operation decorator parameter response_model_exclude_unset=True
+            and those default values won't be included in the response, only the values actually set.
+            You can also use:
+                response_model_exclude_defaults=True
+                response_model_exclude_none=True
+        Data with values for fields with defaults:
+            But if your data has values for the model's fields with default values, they will be included in the response.
+        Data with the same values as the defaults:
+            If the data has the same values as the default ones, FastAPI is smart enough (actually, Pydantic is smart enough) to realize that they were set explicitly (instead of taken from the defaults).
+            So, they will be included in the JSON response.
+    response_model_include and response_model_exclude:
+        You can also use the path operation decorator parameters response_model_include and response_model_exclude.
+        They take a set of str with the name of the attributes to include (omitting the rest) or to exclude (including the rest).
+        This can be used as a quick shortcut if you have only one Pydantic model and want to remove some data from the output.
+        But it is still recommended to use the ideas above, using multiple classes, instead of these parameters.
+        This is because the JSON Schema generated in your app's OpenAPI (and the docs) will still be the one for the complete model, even if you use response_model_include or response_model_exclude to omit some attributes.
+        This also applies to response_model_by_alias that works similarly.
+        Using lists instead of sets:
+            If you forget to use a set and use a list or tuple instead, FastAPI will still convert it to a set and it will work correctly (see changes).
+    Recap:
+        Use the path operation decorator's parameter response_model to define response models and especially to ensure private data is filtered out.
+        Use response_model_exclude_unset to return only the values explicitly set.
+
+Extra Models:
+    Continuing with the previous example, it will be common to have more than one related model.
+    This is especially the case for user models, because:
+        The input model needs to be able to have a password.
+        The output model should not have a password.
+        The database model would probably need to have a hashed password.
+    Multiple models:
+        Here's a general idea of how the models could look like with their password fields and the places where they are used.
+        About **user_in.dict() in the code (or **user_in.model_dump()):
+            user_in is a Pydantic model of class UserIn.
+            Pydantic models have a .dict() method that returns a dict with the model's data.
+            So, if we create a Pydantic object user_in like:
+            user_in = UserIn(username="john", password="secret", email="john.doe@example.com")
+            and then we call:
+            user_dict = user_in.dict()
+            we now have a dict with the data in the variable user_dict (it's a dict instead of a Pydantic model object).
+            Unpacking a dict:
+                If we take a dict like user_dict and pass it to a function (or class) with **user_dict, Python will "unpack" it. It will pass the keys and values of the user_dict directly as key-value arguments.
+                So, continuing with the user_dict from above, writing:
+                    UserInDB(**user_dict)
+                    would result in something equivalent to:
+                        UserInDB(
+                            username="john",
+                            password="secret",
+                            email="john.doe@example.com",
+                            full_name=None,
+                        )
+                    Or more exactly, using user_dict directly, with whatever contents it might have in the future:
+                        UserInDB(
+                            username = user_dict["username"],
+                            password = user_dict["password"],
+                            email = user_dict["email"],
+                            full_name = user_dict["full_name"],
+                        )
+            A Pydanteic model from the contents of another:
+                As in the example above we got user_dict from user_in.dict(), this code:
+                    user_dict = user_in.dict()
+                    UserInDB(**user_dict)
+                    would be equivalent to:
+                        UserInDB(**user_in.dict())
+                        ...because user_in.dict() is a dict, and then we make Python "unpack" it by passing it to UserInDB prefixed with **.
+                        So, we get a Pydantic model from the data in another Pydantic model.
+            Unpacking a dict and extra keywords:
+                And then adding the extra keyword argument hashed_password=hashed_password, like in:
+                    UserInDB(**user_in.dict(), hashed_password=hashed_password)
+                    ...ends up being like:
+                        UserInDB(
+                            username = user_dict["username"],
+                            password = user_dict["password"],
+                            email = user_dict["email"],
+                            full_name = user_dict["full_name"],
+                            hashed_password = hashed_password,
+                        )
+        Reduce duplicarion:
+            Reducing code duplication is one of the core ideas in FastAPI.
+            As code duplication increments the chances of bugs, security issues, code desynchronization issues (when you update in one place but not in the others), etc.
+            And these models are all sharing a lot of the data and duplicating attribute names and types.
+            We could do better.
+            We can declare a UserBase model that serves as a base for our other models. And then we can make subclasses of that model that inherit its attributes (type declarations, validation, etc).
+            All the data conversion, validation, documentation, etc. will still work as normally.
+            That way, we can declare just the differences between the models (with plaintext password, with hashed_password and without password).
+    Union or anyOf:
+        You can declare a response to be the Union of two or more types, that means, that the response would be any of them.
+        It will be defined in OpenAPI with anyOf.
+        Note: When defining a Union, include the most specific type first, followed by the less specific type. In the example below, the more specific PlaneItem comes before CarItem in Union[PlaneItem, CarItem].
+        To do that, use the standard Python type hint typing.Union.
+        Union in Python 3.10:
+            In this example we pass Union[PlaneItem, CarItem] as the value of the argument response_model.
+            Because we are passing it as a value to an argument instead of putting it in a type annotation, we have to use Union even in Python 3.10.
+            If it was in a type annotation we could have used the vertical bar, as:
+                some_variable: PlaneItem | CarItem
+            But if we put that in the assignment response_model=PlaneItem | CarItem we would get an error, because Python would try to perform an invalid operation between PlaneItem and CarItem instead of interpreting that as a type annotation.
+    List of models:
+        The same way, you can declare responses of lists of objects.
+        For that, use the standard Python typing.List (or just list in Python 3.9 and above).
+    Response with arbitrary dict:
+        You can also declare a response using a plain arbitrary dict, declaring just the type of the keys and values, without using a Pydantic model.
+        This is useful if you don't know the valid field/attribute names (that would be needed for a Pydantic model) beforehand.
+        In this case, you can use typing.Dict (or just dict in Python 3.9 and above).
+    Recap:
+        Use multiple Pydantic models and inherit freely for each case.
+        You don't need to have a single data model per entity if that entity must be able to have different "states". As the case with the user "entity" with a state including password, password_hash and no password.
+
+
+
 
 Extra Data Types:
 Cookie Parameters:
