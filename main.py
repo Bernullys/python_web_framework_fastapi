@@ -1,10 +1,10 @@
 from typing import Union, Annotated, Literal, Any
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header, status
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, Response, status
+from fastapi.responses import JSONResponse, RedirectResponse
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl, EmailStr
 from uuid import UUID
 from datetime import datetime, time, timedelta
-
 
 
 app = FastAPI()
@@ -757,7 +757,7 @@ class ForbidCookies(BaseModel):
     googall_tracker: str | None = None
 
 @app.get("/items/")
-async def cookie_model_forbid(cookies: Annotated[ForbidCookies, Cookies()]):
+async def cookie_model_forbid(cookies: Annotated[ForbidCookies, Cookie()]):
     return cookies
 
 
@@ -867,8 +867,6 @@ async def create_user_data_filtering(user: UserIn) -> BaseUser:
 
 # Other return type annotations:
 # Return a Response directly:
-from fastapi import FastAPI, Response
-from fastapi.responses import JSONResponse, RedirectResponse
 
 @app.get("/portal")
 async def get_portal(teleport: bool = False) -> Response:
@@ -881,12 +879,12 @@ async def get_portal(teleport: bool = False) -> Response:
 async def get_teleport() -> RedirectResponse:
     return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
-# Invalid return type annotation:
-@app.get("/portal")
-async def get_portal_invalid(teleport: bool = False) -> Response | dict:
-    if teleport:
-        return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-    return {"message": "Here's your interdimensional portal."}
+# # Invalid return type annotation:
+# @app.get("/portal")
+# async def get_portal_invalid(teleport: bool = False) -> Response | dict:
+#     if teleport:
+#         return RedirectResponse(url="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+#     return {"message": "Here's your interdimensional portal."}
 
 # Disable response_model:
 @app.get("/portal", response_model=None)
