@@ -1,5 +1,5 @@
 from typing import Union, Annotated, Literal, Any
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, status
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl, EmailStr
 from uuid import UUID
@@ -852,7 +852,7 @@ class UserOut(BaseModel):
 async def create_user_return_output_data(user: UserIn) -> Any:
     return user
 
-#Return type and Data Filtering:
+# Return type and Data Filtering:
 class BaseUser(BaseModel):
     username: str
     email: EmailStr
@@ -1063,3 +1063,13 @@ async def read_list_of_objects_items():
 async def read_keyword_weights_arbitrary_dict():
     return {"foo": 2.3, "bar": 3.4}
 
+
+#--------------------------------- Response Status Code ------------------------------------------#
+@app.post("/items/", status_code=201)
+async def create_item_with_sc(name: str):
+    return {"name": name}
+
+# using status from fastapi to help remembering the codes:
+@app.post("/items/", status_code=status.HTTP_201_CREATED)
+async def create_item_with_sc(name: str):
+    return {"name": name}

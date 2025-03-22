@@ -903,17 +903,42 @@ Extra Models:
         Use multiple Pydantic models and inherit freely for each case.
         You don't need to have a single data model per entity if that entity must be able to have different "states". As the case with the user "entity" with a state including password, password_hash and no password.
 
-
-
-
-Extra Data Types:
-Cookie Parameters:
-Header Parameters:
-Cookie Parameter Models:
-Header Parameter Models:
-Response Model - Return Type:
-Extra Models:
 Response Status Code:
+    The same way you can specify a response model, you can also declare the HTTP status code used for response with parameter status_code in any of the path operations:
+        @app.get()
+        @app.post()
+        @app.delete()
+        @app.put()
+        etc.
+    Important: Notice that status_code is a parameter of the "decorator" method (get, post, etc). Not of your path operation function, like all the parameters and body.
+    The status_code parameter recieves a number with the HTTP status code. (There is a python library for http).
+    It will:
+        Return that status code in the response.
+        Document it as such in the OpenAPI schema (and so, in the user interfaces).
+    Note: Some response codes (see the next section) indicate that the response does not have a body.
+    FastAPI knows this, and will produce OpenAPI docs that state there is no response body.
+    About HTTP status codes:
+        In HTTP, you send a numeric status code of 3 digits as part of the response.
+        These status codes have a name associated to recognize them, but the important part is the number.
+        In short:
+            100 - 199 are for "Information". You rarely use them directly. Responses with these status codes cannot have a body.
+            200 - 299 are for "Successful" responses. These are the ones you would use the most.
+            200 is the default status code, which means everything was "OK".
+            Another example would be 201, "Created". It is commonly used after creating a new record in the database.
+            A special case is 204, "No Content". This response is used when there is no content to return to the client, and so the response must not have a body.
+            300 - 399 are for "Redirection". Responses with these status codes may or may not have a body, except for 304, "Not Modified", which must not have one.
+            400 - 499 are for "Client error" responses. These are the second type you would probably use the most.
+            An example is 404, for a "Not Found" response.
+            For generic errors from the client, you can just use 400.
+            500 - 599 are for server errors. You almost never use them directly. When something goes wrong at some part in your application code, or server, it will automatically return one of these status codes.
+    Shortcut to remember the names:
+        You don't have to memorize what each of the status code mean.
+        You can use the convenience variables from fastapi.status.
+        They are just a convenience, they hold the same number, but that way you can use the editor's autocomplete to find them.
+    Changing the default:
+        Later, in the Advanced User Guide, you will see how to return a different status code than the default you are declaring here.
+
+
 Form Data:
 Form Models:
 Request Files:
