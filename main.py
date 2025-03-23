@@ -1,5 +1,5 @@
 from typing import Union, Annotated, Literal, Any
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header, Response, status
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, Response, status, Form
 from fastapi.responses import JSONResponse, RedirectResponse
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl, EmailStr
@@ -1071,3 +1071,10 @@ async def create_item_with_sc(name: str):
 @app.post("/items/", status_code=status.HTTP_201_CREATED)
 async def create_item_with_sc(name: str):
     return {"name": name}
+
+
+#--------------------------------- Form Data ------------------------------------------#
+@app.post("/login/")
+async def login(username: Annotated[str, Form()], password: Annotated[str, Form()]):
+    return {"username": username}
+
