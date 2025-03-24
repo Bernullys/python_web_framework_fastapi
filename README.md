@@ -960,6 +960,21 @@ Form Data:
         Use Form to declare form data input parameters.
 
 Form Models:
+    We can use Pydantic models to declare form fields in FastAPI.
+    Pydantic Models for Forms:
+        You just need to declare a Pydantic model with the fields you want to receive as form fields, and then declare the parameter as Form.
+        FastAPI will extract the data for each field from the form data in the request and give you the Pydantic model you defined.
+    Forbid Extra Form Fields:
+        In some special cases (probably not very common), you might want to restrict the form fields to only those declared in the Pydantic model. And forbid any extra fields.
+        If a client tries to send somo extra data, they will receive an error response.
+    Summary:
+        You can use Pydantic models to declare form fields in FastAPI.
+
+
+
+
+
+
 Request Files:
 Request Forms and Files:
 Handling Errors:

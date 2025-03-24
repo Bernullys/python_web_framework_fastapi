@@ -1078,3 +1078,23 @@ async def create_item_with_sc(name: str):
 async def login(username: Annotated[str, Form()], password: Annotated[str, Form()]):
     return {"username": username}
 
+
+#--------------------------------- Form Models ------------------------------------------#
+#Pydanctic model for form data:
+class FormModel(BaseModel):
+    username: str
+    password: str
+
+@app.post("/login/")
+async def login_with_form_model(data: Annotated[FormModel, Form()]):
+    return data
+
+# Forbid extra fields:
+class FormModel(BaseModel):
+    username: str
+    password: str
+    model_config = {"extra": "forbid"}
+
+@app.post("/login/")
+async def login_with_form_model(data: Annotated[FormModel, Form()]):
+    return data
