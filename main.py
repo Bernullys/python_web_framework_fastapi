@@ -1,6 +1,6 @@
 from typing import Union, Annotated, Literal, Any
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header, Response, status, Form
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, Response, status, Form, File, UploadFile
+from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl, EmailStr
 from uuid import UUID
@@ -1098,3 +1098,97 @@ class FormModel(BaseModel):
 @app.post("/login/")
 async def login_with_form_model(data: Annotated[FormModel, Form()]):
     return data
+
+
+#--------------------------------- Request Files ------------------------------------------#
+# File parameters:
+@app.post("/files")
+async def create_file(file: Annotated[bytes, File()]):
+    return {"file_size": len(file)}
+
+# File parameters with UploadFile:
+@app.post("/uploadfile/")
+async def create_upload_file(file: UploadFile):
+    return {"filename": file.filename}
+
+# Optional file upload:
+@app.post("/files/")
+async def create_file_optional(file: Annotated[bytes | None, File()] = None):
+    if not file:
+        return {"Message": "Not file sent"}
+    else:
+        return {"File_size": len(file)}
+
+@app.post("/files/")
+async def create_file_optional_upload(file: UploadFile | None = None):
+    if not file:
+        return {"Message": "Not upload file sent"}
+    else:
+        return {"File_name": file.filename}
+
+# You can also use File() with UploadFile, for example to set additional metadata:
+@app.post("/files/")
+async def create_file_with_metadata(file: Annotated[bytes, File(description="A file read as bytes")]):
+    return {"file_size": len(file)}
+
+@app.post("/uploadfile/")
+async def create_upload_file_with_metadata(
+    file: Annotated[UploadFile, File(description="A file read as UploadFile")],
+):
+    return {"filename": file.filename}
+
+# Multiple file uploads:
+@app.post("/files/")
+async def create_files(files: Annotated[list[bytes], File()]):
+    return {"file_sizes": [len(file) for file in files]}
+
+@app.post("/uploadfiles/")
+async def create_upload_files(files: list[UploadFile]):
+    return {"filenames": [file.filename for file in files]}
+
+@app.get("/")
+async def main():
+    content = """
+<body>
+<form action="/files/" enctype="multipart/form-data" method="post">
+<input name="files" type="file" multiple>
+<input type="submit">
+</form>
+<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
+<input name="files" type="file" multiple>
+<input type="submit">
+</form>
+</body>
+    """
+    return HTMLResponse(content=content)
+
+# Multiple file uploads with additional metadata:
+@app.post("/files/")
+async def create_files(
+    files: Annotated[list[bytes], File(description="Multiple files as bytes")],
+):
+    return {"file_sizes": [len(file) for file in files]}
+
+@app.post("/uploadfiles/")
+async def create_upload_files(
+    files: Annotated[
+        list[UploadFile], File(description="Multiple files as UploadFile")
+    ],
+):
+    return {"filenames": [file.filename for file in files]}
+
+@app.get("/")
+async def main():
+    content = """
+<body>
+<form action="/files/" enctype="multipart/form-data" method="post">
+<input name="files" type="file" multiple>
+<input type="submit">
+</form>
+<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
+<input name="files" type="file" multiple>
+<input type="submit">
+</form>
+</body>
+    """
+    return HTMLResponse(content=content)
