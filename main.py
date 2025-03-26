@@ -1192,3 +1192,19 @@ async def main():
 </body>
     """
     return HTMLResponse(content=content)
+
+
+#--------------------------------- Request Forms and Files ------------------------------------------#
+# Define File and Form at the same time:
+
+@app.post("/files/")
+async def create_file_and_form(
+    file: Annotated[bytes, File()],
+    fileb: Annotated[UploadFile, File()],
+    token: Annotated[str, Form()]
+):
+    return {
+        "file size": len(file),
+        "token": token,
+        "fileb content type": fileb.content_type
+    }
