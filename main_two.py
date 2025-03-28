@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
+from enum import Enum
 
 app_two = FastAPI()
 
@@ -125,3 +126,90 @@ async def read_item(item_id: int):
     if item_id == 3:
         raise HTTPException(status_code=418, detail="Nope! I don't like 3.")
     return {"item_id": item_id}
+
+
+#--------------------------------------------Path Operation Configuration------------------------------------------------#
+# Response status code:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: set[str] = set()
+
+@app_two.post("/items/", response_model=Item, status_code=status.HTTP_201_CREATED)
+async def create_item_with_status(item: Item):
+    return item
+
+# tag parameter:
+@app_two.post("/items/", response_model=Item, tags=["items"])
+async def create_item_with_tag(item: Item):
+    return item
+
+# Tags with Enum:
+class Tags(Enum):
+    items = "items"
+    users = "users"
+
+@app_two.post("/items/", response_model=Item, tags=[Tags.items])
+async def create_item_with_enum_tag(item: Item):
+    return item
+
+@app_two.get("/users/", tags=[Tags.users])
+async def read_users_with_enum_tag():
+    return ["Rick", "Morty"]
+
+# Summary and description:
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: set[str] = set()
+
+@app_two.post(
+    "/items/",
+    response_model=Item,
+    summary="Create an item",
+    description="Create an item with all the information, name, description, price, tax and a set of unique tags",
+)
+async def create_item(item: Item):
+    return item
+
+# Description from a docstring:
+@app_two.post("/items/", response_model=Item, summary="Create an item")
+async def create_item(item: Item):
+    """
+    Create an item with all the information:
+
+    - **name**: each item must have a name
+    - **description**: a long description
+    - **price**: required
+    - **tax**: if the item doesn't have tax, you can omit this
+    - **tags**: a set of unique tag strings for this item
+    """
+    return item
+
+# Response description:
+@app_two.post(
+    "/items/",
+    response_model=Item,
+    summary="Create an item",
+    response_description="The created item",
+)
+async def create_item(item: Item):
+    """
+    Create an item with all the information:
+
+    - **name**: each item must have a name
+    - **description**: a long description
+    - **price**: required
+    - **tax**: if the item doesn't have tax, you can omit this
+    - **tags**: a set of unique tag strings for this item
+    """
+    return item
+
+# Deprecate a path operation:
+@app_two.get("/elements/", tags=["items"], deprecated=True)
+async def read_elements():
+    return [{"item_id": "Foo"}]

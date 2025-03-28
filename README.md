@@ -1114,10 +1114,41 @@ Handling Errors:
         If you want to use the exception along with the same default exception handlers from FastAPI, you can import and reuse the default exception handlers from fastapi.exception_handlers.
         In this example you are just printing the error with a very expressive message, but you get the idea. You can use the exception and then just reuse the default exception handlers.
 
-
-
-
 Path Operation Configuration:
+    There are several parameters that you can pass to your path operation decorator to configure it.
+    Notice that these parameters are passed directly to the path operation decorator, not to your path operation function.
+    Response Status Code:
+        You can define the (HTTP) status_code to be used in the response of your path operation.
+        You can pass directly the int code, like 404.
+        But if you don't remember what each number code is for, you can use the shortcut constants in status.
+        That status code will be used in the response and will be added to the OpenAPI schema.
+    Tags:
+        You can add tags to your path operation, pass the parameter tags with a list of str (commonly just one str).
+        They will be added to the OpenAPI schema and used by the automatic documentation interfaces.
+    Tags with Enums:
+        If you have a big application, you might end up accumulating several tags, and you would want to make sure you always use the same tag for related path operations.
+        In these cases, it could make sense to store the tags in an Enum.
+        FastAPI supports that the same way as with plain strings.
+    Summary and description:
+        You can add a summary and description.
+    Description from docstring:
+        As descriptions tend to be long and cover multiple lines, you can declare the path operation description in the function docstring and FastAPI will read it from there.
+        You can write Markdown in the docstring, it will be interpreted and displayed correctly (taking into account docstring indentation).
+    Response description:
+        You can specify the response description with the parameter response_description.
+        Notice that response_description refers specifically to the response, the description refers to the path operation in general.
+        OpenAPI specifies that each path operation requires a response description.
+        So, if you don't provide one, FastAPI will automatically generate one of "Successful response".
+    Deprecate a path operation:
+        If you need to mark a path operation as deprecated, but without removing it, pass the parameter deprecated.
+    Recap:
+        You can cobfigure and add metadata for your operations easily by passing parameters to the path operation decorators.
+
+
+
+
+
+
 JSON Compatible Encoder:
 Body - Updates:
 Dependencies:
