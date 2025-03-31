@@ -213,3 +213,22 @@ async def create_item(item: Item):
 @app_two.get("/elements/", tags=["items"], deprecated=True)
 async def read_elements():
     return [{"item_id": "Foo"}]
+
+
+#----------------------------------------------JASON Compatible Encoders-------------------------------------------------#
+# Using jsonable_encoder function:
+import datetime
+from fastapi.encoders import jsonable_encoder
+
+fake_db = {}
+
+class Item(BaseModel):
+    title: str
+    timestamp: datetime
+    description: str | None = None
+
+# In this example, it would convert the Pydantic model to a dict, and the datetime to a str:
+@app_two.put("/items/{id}")
+def update_item_using_jsonable(id: str, item: Item):
+    json_compatible_item_data = jsonable_encoder(item)
+    fake_db[id] = json_compatible_item_data
