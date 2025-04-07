@@ -1307,7 +1307,34 @@ Dependencies:
         All these dependencies, while declaring their requirements, also add parameters, validations, etc. to your path operations.
         FastAPI will take care of adding it all to the OpenAPI schema, so that it is shown in the interactive documentation systems
 
-
+Classes as Dependencies:
+    What makes a dependency:
+        Up to now you have seen dependencies declared as functions.
+        But that's not the only way to declare dependencies (although it would probably be the more common).
+        The key factor is that a dependency should be a "callable".
+        A "callable" in Python is anything that Python can "call" like a function.
+        So, if you have an object something (that might not be a function) and you can "call" it (execute it) like:
+            something()
+            or
+            something(some_argument, some_keyword_argument="foo")
+        then it is a "callable".
+        A Python class is a callable.
+    Then, in FastAPI, you could use a Python class as a dependency.
+    What FastAPI actually checks is that it is a "callable" (function, class or anything else) and the parameters defined.
+    If you pass a "callable" as a dependency in FastAPI, it will analyze the parameters for that "callable", and process them in the same way as the parameters for a path operation function. Including sub-dependencies.
+    That also applies to callables with no parameters at all. The same as it would be for path operation functions with no parameters.
+    Pay attention to the __init__ method used to create the instance of the class: ...it has the same parameters as our previous common_parameters.
+    Those parameters are what FastAPI will use to "solve" the dependency. In both cases the data will be converted, validated, documented on the OpenAPI schema, etc.
+    Now you can declare your dependency using this class.
+    FastAPI calls the CommonQueryParams class. This creates an "instance" of that class and the instance will be passed as the parameter commons to your function.
+    Type annotation vs Depends: (whatch the example).
+    Shortcut:
+        But you see that we are having some code repetition here, writing CommonQueryParams twice.
+        FastAPI provides a shortcut for these cases, in where the dependency is specifically a class that FastAPI will "call" to create an instance of the class itself.
+        For those specific cases, you can do the following:
+            commons: Annotated[CommonQueryParams, Depends()]
+            You declare the dependency as the type of the parameter, and you use Depends() without any parameter, instead of having to write the full class again inside of Depends(CommonQueryParams).
+        Tip: If that seems more confusing than helpful, disregard it, you don't need it. It is just a shortcut. Because FastAPI cares about helping you minimize code repetition.
 
 
 

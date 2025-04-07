@@ -298,3 +298,28 @@ async def read_items(commons: CommonsDep):
 @app_two.get("/users/")
 async def read_users(commons: CommonsDep):
     return commons
+
+# -------- Classes as Dependencies ----------#
+# We can change the dependency "dependable" common_parameters from above to the class CommonQueryParams:
+fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
+
+class CommonQueryParams:
+    def __init__(self, q: str | None = None, skip: int = 0, limit: int = 100):
+        self.q = q
+        self.skip = skip
+        self.limit = limit
+
+@app_two.get("/items/")
+async def read_items(commons: Annotated[CommonQueryParams, Depends(CommonQueryParams)]):
+    response = {}
+    if commons.q:
+        response.update({"q": commons.q})
+    items = fake_items_db[commons.skip : commons.skip + commons.limit]
+    response.update({"items": items})
+    return response
+# Notice how we write CommonQueryParams twice in the above code.
+# It is from Depends(CommonQueryParams) where FastAPI will extract the declared parameters and that is what FastAPI actually call.
+# In this case Annotated[CommonQueryParams doesn't have any special meaning for FastAPI. FastAPI won't use it for data conversion, validation, etc. (as it is using the Depends(CommonQueryParams) for that).
+# We could actually write:
+#    commons: Annotated[Any, Depends(CommonQueryParams)]
+# But declaring the type is encouraged as that way your editor will know what will be passed as the parameter commons, and then it can help you with code completion, type checks, etc.
