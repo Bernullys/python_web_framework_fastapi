@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status, Cookie
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.exceptions import RequestValidationError
@@ -323,3 +323,23 @@ async def read_items(commons: Annotated[CommonQueryParams, Depends(CommonQueryPa
 # We could actually write:
 #    commons: Annotated[Any, Depends(CommonQueryParams)]
 # But declaring the type is encouraged as that way your editor will know what will be passed as the parameter commons, and then it can help you with code completion, type checks, etc.
+
+# -------- Sub-dependencies ----------#
+def query_extractor(q: str | None = None): # First dependency "dependable"
+    return q
+
+def query_or_cookie_extractor(                      # Second dependency "dependable"
+    q: Annotated[str, Depends(query_extractor)],    # Declares a dependency of its own (so it's a "dependant" too)
+    last_query: Annotated[str | None, Cookie()] = None,
+):
+    if not q:
+        return last_query
+    return q
+
+@app_two.get("/items/")
+async def read_query(
+    query_or_default: Annotated[str, Depends(query_or_cookie_extractor)], # Then we can use the dependency here
+):
+    return {"q_or_cookie": query_or_default}
+# Info: Notice that we are only declaring one dependency in the path operation function, the query_or_cookie_extractor.
+# But FastAPI will know that it has to solve query_extractor first, to pass the results of that to query_or_cookie_extractor while calling it.

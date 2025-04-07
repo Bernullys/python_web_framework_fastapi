@@ -1336,6 +1336,34 @@ Classes as Dependencies:
             You declare the dependency as the type of the parameter, and you use Depends() without any parameter, instead of having to write the full class again inside of Depends(CommonQueryParams).
         Tip: If that seems more confusing than helpful, disregard it, you don't need it. It is just a shortcut. Because FastAPI cares about helping you minimize code repetition.
 
+Sub-dependencies:
+    You can create dependencies that have sub-dependencies.
+    They can be as deep as you need them to be.
+    FastAPI will take care of solving them.
+    Let's focus on the parameters declared: (Whatch the example)
+        Even though this function is a dependency ("dependable") itself, it also declares another dependency (it "depends" on something else).
+        It depends on the query_extractor, and assigns the value returned by it to the parameter q.
+        It also declares an optional last_query cookie, as a str.
+        If the user didn't provide any query q, we use the last query used, which we saved to a cookie before.
+    Using the same dependency multiple times:
+        If one of your dependencies is declared multiple times for the same path operation, for example, multiple dependencies have a common sub-dependency, FastAPI will know to call that sub-dependency only once per request.
+        And it will save the returned value in a "cache" and pass it to all the "dependants" that need it in that specific request, instead of calling the dependency multiple times for the same request.
+        In an advanced scenario where you know you need the dependency to be called at every step (possibly multiple times) in the same request instead of using the "cached" value, you can set the parameter use_cache=False when using Depends:
+        async def needy_dependency(fresh_value: Annotated[str, Depends(get_value, use_cache=False)]):
+            return {"fresh_value": fresh_value}
+    Recap:
+        Apart from all the fancy words used here, the Dependency Injection system is quite simple.
+        Just functions that look the same as the path operation functions.
+        But still, it is very powerful, and allows you to declare arbitrarily deeply nested dependency "graphs" (trees).
+        Tip: 
+            All this might not seem as useful with these simple examples.
+            But you will see how useful it is in the chapters about security.
+            And you will also see the amounts of code it will save you.
+
+
+
+
+
 
 
 
