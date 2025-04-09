@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, status, Cookie
+from fastapi import FastAPI, HTTPException, Request, status, Cookie, Header, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.exceptions import RequestValidationError
@@ -343,3 +343,19 @@ async def read_query(
     return {"q_or_cookie": query_or_default}
 # Info: Notice that we are only declaring one dependency in the path operation function, the query_or_cookie_extractor.
 # But FastAPI will know that it has to solve query_extractor first, to pass the results of that to query_or_cookie_extractor while calling it.
+
+#----------------- Dependencies in path operation decorators -------------------#
+# Add dependencies to the path operation decorator:
+async def verify_token(x_token: Annotated[str | None, Header()]):
+    if x_token != "fake-super-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+
+async def verufy_key(x_key: Annotated[str, Header()]):
+    if x_key != "fake-super-key":
+        raise HTTPException(status_code=400, detail="X-Key header invalid")
+    return x_key
+
+@app_two.get("/items/", dependencies=[Depends(verify_token), Depends(verufy_key)])
+async def read_items():
+    return [{"item": "Foo"}, {"item": "Bar"}]
+
