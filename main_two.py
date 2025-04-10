@@ -380,3 +380,100 @@ async def read_items():
 @app_three.get("/users/")
 async def read_users():
     return [{"username": "Rick"}, {"username": "Morty"}]
+
+#------------------- Dependencies with yield -------------------#
+# A database dependency with yield:
+async def get_db():
+    db = DBSession() 
+    try:
+        yield db    # Injected into the path operation and other dependencies.
+    finally:
+        db.close()  # Executed after creating the response but before sending it.
+
+# Sub-dependencies with yield:
+# dependency_c can have a dependency on dependency_b, and dependency_b on dependency_a:
+async def dependency_a():
+    dep_a = generate_dep_a()
+    try:
+        yield dep_a
+    finally:
+        dep_a.close()
+
+async def dependency_b(dep_a: Annotated[DepA, Depends(dependency_a)]):
+    dep_b = generate_dep_b()
+    try:
+        yield dep_b
+    finally:
+        dep_b.close(dep_a)
+
+async def dependency_c(dep_b: Annotated[DepB, Depends(dependency_b)]):
+    dep_c = generate_dep_c()
+    try:
+        yield dep_c
+    finally:
+        dep_c.close(dep_b)
+# In this case dependency_c, to execute its exit code, needs the value from dependency_b (here named dep_b) to still be available.
+# And, in turn, dependency_b needs the value from dependency_a (here named dep_a) to be available for its exit code.
+
+# Dependencies with yield and HTTPException:
+data = {
+    "plumbus": {"description": "Freshly pickled plumbus", "owner": "Morty"},
+    "portal-gun": {"description": "Gun to create portals", "owner": "Rick"},
+}
+
+class OwnerError(Exception):
+    pass
+
+def get_username():
+    try:
+        yield "Rick"
+    except OwnerError as e:
+        raise HTTPException(status_code=400, detail=f"Owner error: {e}")
+
+@app_two.get("/items/{item_id}")
+def get_item(item_id: str, username: Annotated[str, Depends(get_username)]):
+    if item_id not in data:
+        raise HTTPException(status_code=404, detail="Item not found")
+    item = data[item_id]
+    if item["owner"] != username:
+        raise OwnerError(username)
+    return item
+
+# We should re-raise the exception in the dependency:
+# Now the client will get the same HTTP 500 Internal Server Error response, but the server will have our custom InternalError in the logs.
+class InternalError(Exception):
+    pass
+
+def get_username():
+    try:
+        yield "Rick"
+    except InternalError:
+        print("We don't swallow the internal error here, we raise again 😎")
+        raise
+
+@app_two.get("/items/{item_id}")
+def get_item(item_id: str, username: Annotated[str, Depends(get_username)]):
+    if item_id == "portal-gun":
+        raise InternalError(
+            f"The portal gun is too dangerous to be owned by {username}"
+        )
+    if item_id != "plumbus":
+        raise HTTPException(
+            status_code=404, detail="Item not found, there's only a plumbus here"
+        )
+    return item_id
+
+# Using context managers in dependencies with yield:
+class MySuperContextManager:
+    def __init__(self):
+        self.db = DBSession()
+
+    def __enter__(self):
+        return self.db
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.db.close()
+
+async def get_db():
+    with MySuperContextManager() as db:
+        yield db

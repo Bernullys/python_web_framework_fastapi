@@ -1398,6 +1398,88 @@ Global Dependencies:
     Dependencies for groups of path operations:
         Later, when reading about how to structure bigger applications (Bigger Applications - Multiple Files), possibly with multiple files, you will learn how to declare a single dependencies parameter for a group of path operations.
 
+Dependencies with yield:
+    FastAPI supports dependencies that do some extra steps after finishing.
+    To do this, use yield insted of return, and write the extra steps (code) after.
+    Tip:
+        Make sure to use yield one single time per dependency.
+    Technical details:
+        Any function that is valid to use with:
+            @contextlib.contextmanager or
+            @contextlib.asynccontextmanager
+        would be valid to use as a FastAPI dependency.
+        In fact, FastAPI uses those two decorators internally.
+    A database dependency with yield:
+        For example, you could use this to create a database session and close it after finishing.
+        Only the code prior to and including the yield statement is executed before creating a response.
+        The yielded value is what is injected into path operations and other dependencies.
+        The code following the yield statement is executed after creating the response but before sending it.
+        Tip:
+            You can use async or regular functions.
+            FastAPI will do the right thing with each, the same as with normal dependencies.
+    A dependency with yield and try:
+        If you use a try block in a dependency with yield, you'll receive any exception that was thrown when using the dependency.
+        For example, if some code at some point in the middle, in another dependency or in a path operation, made a database transaction "rollback" or create any other error, you will receive the exception in your dependency.
+        So, you can look for that specific exception inside the dependency with except SomeException.
+        In the same way, you can use finally to make sure the exit steps are executed, no matter if there was an exception or not.
+    Sub-dependencies with yield:
+        You can have sub-dependencies and "trees" of sub-dependencies of any size and shape, and any or all of them can use yield.
+        FastAPI will make sure that the "exit code" in each dependency with yield is run in the correct order.
+        The same way, you could have some dependencies with yield and some other dependencies with return, and have some of those depend on some of the others.
+        And you could have a single dependency that requires several other dependencies with yield, etc.
+        You can have any combinations of dependencies that you want.
+        FastAPI will make sure everything is run in the correct order.
+        Technical details:
+            This works thanks to Python's Context Managers.
+            FastAPI uses them internally to achive this.
+    Dependencies with yield and HTTPException:
+        You saw that you can use dependencies with yield and have try blocks that catch exceptions.
+        The same way, you can raise an HTTPException or similar in the exit code, after the yield.
+        Tip:
+            This is a somewhat advanced technique, and in most of the cases you won't really need it, as you can raise exceptions (including HTTPException) from inside of the rest of your application code, for example, in the path operation function.
+            But it's there for you if you need it. 
+        An alternative you could use to catch exceptions (and possibly also raise another HTTPException) is to create a Custom Exception Handler.
+    Dependencies with yield and exept:
+        If you catch an exception using except in a dependency with yield and you don't raise it again (or raise a new exception), FastAPI won't be able to notice there was an exception, the same way that would happen with regular Python.
+        In this case, the client will see an HTTP 500 Internal Server Error response as it should, given that we are not raising an HTTPException or similar, but the server will not have any logs or any other indication of what was the error. 
+    Always raise in Dependencies with yield and except:
+        If you catch an exception in a dependency with yield, unless you are raising another HTTPException or similar, you should re-raise the original exception.
+    Execution of dependencies with yield:
+        The sequence of execution is more or less like this diagram. Time flows from top to bottom. And each column is one of the parts interacting or executing code. (See diagram).
+        Info:
+            Only one response will be sent to the client. It might be one of the error responses or it will be the response from the path operation.
+            After one of those responses is sent, no other response can be sent.
+        Tip:
+            This diagram shows HTTPException, but you could also raise any other exception that you catch in a dependency with yield or with a Custom Exception Handler.
+            If you raise any exception, it will be passed to the dependencies with yield, including HTTPException. In most cases you will want to re-raise that same exception or a new one from the dependency with yield to make sure it's properly handled.
+    Dependencies with yield, HTTPException, except and Background Tasks:
+        Warning:
+            You most probably don't need these technical details, you can skip this section and continue below.
+            These details are useful mainly if you were using a version of FastAPI prior to 0.106.0 and used resources from dependencies with yield in background tasks.
+    Context Managers:
+        "Context Managers" are any of those Python objects that you can use in a with statement.
+        For example, you can use with to read a file:
+            with open("./somefile.txt") as f:
+                contents = f.read()
+                print(contents)
+        Underneath, the open("./somefile.txt") creates an object that is called a "Context Manager".
+        When the with block finishes, it makes sure to close the file, even if there were exceptions.
+        When you create a dependency with yield, FastAPI will internally create a context manager for it, and combine it with some other related tools.
+    Using context manager in dependencies with yield:
+        Warning:
+            This is, more or less, an "advanced" idea.
+            If you are just starting with FastAPI you might want to skip it for now.
+        In Python, you can create Context Managers by creating a class with two methods: __enter__() and __exit__().
+        You can also use them inside of FastAPI dependencies with yield by using with or async with statements inside of the dependency function.
+        Tip:
+            Another way to create a context manager is with:
+                @contextlib.contextmanager or
+                @contextlib.asynccontextmanager
+            using them to decorate a function with a single yield.
+            That's what FastAPI uses internally for dependencies with yield.
+            But you don't have to use the decorators for FastAPI dependencies (and you shouldn't).
+            FastAPI will do it for you internally.
+
 
 
 Security:
