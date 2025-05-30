@@ -2194,4 +2194,21 @@ Static Files:
         For more details and options check Starlette's docs about Static Files.
 
 Testing:
+
+
+
+
+
+
 Debugging:
+    You can connect the debugger in your editor, for example with Visual Studio Code or PyCharm.
+    Call uvicorn:
+        In your FastAPI application, import and run uvicorn directly.
+    Run your code with your debugger:
+        Because you are running the Uvicorn server directly from your code, you can call your Python program (your FastAPI application) directly from the debugger.
+        For example, in Visual Studio Code, you can:
+            Go to the "Debug" panel.
+            "Add configuration...".
+            Select "Python"
+            Run the debugger with the option "Python: Current File (Integrated Terminal)".
+        It will then start the server with your FastAPI code, stop at your breakpoints, etc.
