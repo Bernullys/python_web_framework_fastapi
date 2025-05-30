@@ -2178,8 +2178,20 @@ Metadata and Docs URLs:
                 You can set its URL with the parameter redoc_url.
                 You can disable it by setting redoc_url=None.
 
-
-
 Static Files:
+    You can serve static files automatically from a directory using StaticFiles.
+    Use StaticFiles:
+        Import StaticFiles.
+        "Mount" a StaticFiles() instance in a specific path.
+    Technical Details:
+        You could also use from starlette.staticfiles import StaticFiles.
+        FastAPI provides the same starlette.staticfiles as fastapi.staticfiles just as a convenience for you, the developer. But it actually comes directly from Starlette.
+    What is "Mounting":
+        "Mounting" means adding a complete "independent" application in a specific path, that then takes care of handling all the sub-paths.
+        This is different from using an APIRouter as a mounted application is completely independent. The OpenAPI and docs from your main application won't include anything from the mounted application, etc.
+        You can read more about this in the Advanced User Guide.
+    More info:
+        For more details and options check Starlette's docs about Static Files.
+
 Testing:
 Debugging:
