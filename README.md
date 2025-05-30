@@ -2133,10 +2133,53 @@ Background Tasks:
     Recap:
         Import and use BackgroundTasks with parameters in path operation functions and dependencies to add background tasks.
 
-
-
-
 Metadata and Docs URLs:
+    You can customize several metadata configuration in your FastAPI application.
+    Metadata for API:
+        You can use the following fields that are used in the OpenAPI specification and the automatic API docs UIs:
+
+    Parameter	        Type	Description
+    title	            str	    The title of the API.
+    summary	            str	    A short summary of the API. Available since OpenAPI 3.1.0, FastAPI 0.99.0.
+    description	        str	    A short description of the API. It can use Markdown.
+    version	            str	    The version of the API. This is the version of your own application, not of OpenAPI. For example 2.5.0.
+    terms_of_service    str	    A URL to the Terms of Service for the API. If provided, this has to be a URL.
+    contact	            dict	The contact information for the exposed API. It can contain several fields. contact fields
+    license_info	    dict	The license information for the exposed API. It can contain several fields. license_info fields
+
+    Tip:
+        You can write Markdown in the description field and it will be rendered in the output.
+    (See docs)
+    License identifier.
+        Since OpenAPI 3.1.0 and FastAPI 0.99.0, you can also set the license_info with an identifier instead of a url.
+    Metadata for tags:
+        You can also add additional metadata for the different tags used to group your path operations with the parameter openapi_tags.
+        It takes a list containing one dictionary for each tag.
+        Each dictionary can contain:
+            name (required): a str with the same tag name you use in the tags parameter in your path operations and APIRouters.
+            description: a str with a short description for the tag. It can have Markdown and will be shown in the docs UI.
+            externalDocs: a dict describing external documentation with:
+                description: a str with a short description for the external docs.
+                url (required): a str with the URL for the external documentation.
+        Tip:
+            You don't have to add metadata for all the tags that you use.
+        Info:
+            Read more about tags in Path Operation Configuration.
+    OpenAPI URL:
+        By default, the OpenAPI schema is served at /openapi.json.
+        But you can configure it with the parameter openapi_url.
+        If you want to disable the OpenAPI schema completely you can set openapi_url=None, that will also disable the documentation user interfaces that use it.
+    Docs URLs:
+        You can configure the two documentation user interfaces included:
+            Swagger UI: served at /docs.
+                You can set its URL with the parameter docs_url.
+                You can disable it by setting docs_url=None.
+            ReDoc: served at /redoc.
+                You can set its URL with the parameter redoc_url.
+                You can disable it by setting redoc_url=None.
+
+
+
 Static Files:
 Testing:
 Debugging:
